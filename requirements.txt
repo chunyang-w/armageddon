@@ -11,4 +11,5 @@ dask
 distributed
 googledrivedownloader
 folium
-
+jupyter
+ipython
