@@ -119,16 +119,16 @@ class PostcodeLocator(object):
         """
         place_list = []
         selector = 'Sector_Postcode' if sector is True else 'Postcode'
-        for i in range(self.postcode_df.shape[0]):
-            row = self.postcode_df.iloc[i, :]
-            lat = row['Latitude']
-            lon = row['Longitude']
-            if (self.in_area(lat, lon, radii, X)):
-                print(X, ' in area ', lat, lon, radii)
-                place_list.append(row[selector])
-        print(place_list)
-        print(self.postcode_df.shape)
-        print(len(place_list))
+        df = self.postcode_df
+        df['Distance'] = self.norm(
+            np.stack(
+                [df['Latitude'].to_numpy(), df['Longitude'].to_numpy()],
+                axis=1), X
+        )
+        for r in radii:
+            place_list = df[df['Distance'] < r][selector].to_list() +\
+                place_list
+        return list(set(place_list))
 
     def get_population_of_postcode(self, postcodes, sector=False):
         """
