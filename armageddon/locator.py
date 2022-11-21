@@ -1,6 +1,7 @@
 """Module dealing with postcode information."""
 
 import numpy as np
+import pandas as pd
 
 __all__ = ['PostcodeLocator', 'great_circle_distance']
 
@@ -61,6 +62,8 @@ class PostcodeLocator(object):
             latitude-longitude space.
 
         """
+        self.postcode_df = pd.read_csv(postcode_file)
+        self.census_df = pd.read_csv(census_file)
         self.norm = norm
 
     def get_postcodes_by_radius(self, X, radii, sector=False):
