@@ -1,6 +1,12 @@
 import pandas as pd
 from numpy import sin, cos, arcsin, arctan
 import numpy as np
+from locator import PostcodeLocator
+
+locator = PostcodeLocator(
+    '../resources/full_postcodes.csv',
+    '../resources/population_by_postcode_sector.csv',
+)
 
 
 def damage_zones(outcome, lat, lon, bearing, pressures):
@@ -112,7 +118,6 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
         the associated risk. These should be called ``postcode`` or ``sector``,
         and ``risk``.
     """
-
     if sector:
         return pd.DataFrame({'sector': '', 'risk': 0}, index=range(1))
     else:
