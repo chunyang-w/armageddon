@@ -178,5 +178,5 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
     #else:
         #return pd.DataFrame({'postcode': '', 'risk': 0}, index=range(1))
 
-impact_risk(Planet(), means=fiducial_means, stdevs=fiducial_stdevs,
-                pressure=27.e3, nsamples=10, sector=False)
+# impact_risk(Planet(), means=fiducial_means, stdevs=fiducial_stdevs,
+#                 pressure=27.e3, nsamples=10, sector=False)
