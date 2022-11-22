@@ -3,7 +3,15 @@
 import numpy as np
 import pandas as pd
 
-__all__ = ['PostcodeLocator', 'great_circle_distance']
+__all__ = ['PostcodeLocator', 'great_circle_distance', 'get_sector_code']
+
+
+def get_sector_code(code):
+    code = code[:-2]
+    code = code.replace(' ', '')
+    code = code.replace(' ', '')
+    code = code[:-1] + ' ' + code[-1]
+    return code
 
 
 def great_circle_distance(latlon1, latlon2):
@@ -82,7 +90,7 @@ class PostcodeLocator(object):
         """
         self.postcode_df = pd.read_csv(postcode_file)
         self.postcode_df['Sector_Postcode'] = self.postcode_df.apply(
-            lambda row: (row['Postcode'][:4].strip()), axis=1
+            lambda row: get_sector_code(row['Postcode']), axis=1
         )
         self.census_df = pd.read_csv(census_file)
         self.norm = norm
