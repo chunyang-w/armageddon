@@ -87,36 +87,47 @@ class PostcodeLocator(object):
         self.census_df = pd.read_csv(census_file)
         self.norm = norm
 
-    # def get_postcodes_by_radius(self, X, radii, sector=False):
-    #     """
-    #     Return (unit or sector) postcodes within specific distances of
-    #     input location.
+    def get_postcodes_by_radius(self, X, radii, sector=False):
+        """
+        Return (unit or sector) postcodes within specific distances of
+        input location.
 
-    #     Parameters
-    #     ----------
-    #     X : arraylike
-    #         Latitude-longitude pair of centre location
-    #     radii : arraylike
-    #         array of radial distances from X
-    #     sector : bool, optional
-    #         if true return postcode sectors, otherwise postcode units
+        Parameters
+        ----------
+        X : arraylike
+            Latitude-longitude pair of centre location
+        radii : arraylike
+            array of radial distances from X
+        sector : bool, optional
+            if true return postcode sectors, otherwise postcode units
 
-    #     Returns
-    #     -------
-    #     list of lists
-    #         Contains the lists of postcodes closer than the elements
-    #         of radii to the location X.
+        Returns
+        -------
+        list of lists
+            Contains the lists of postcodes closer than the elements
+            of radii to the location X.
 
 
-    #     Examples
-    #     --------
-    #     >>> locator = PostcodeLocator()
-    #     >>> locator.get_postcodes_by_radius((51.4981, -0.1773), [0.13e3])
-    #     >>> locator.get_postcodes_by_radius((51.4981, -0.1773),
-    #                                         [0.4e3, 0.2e3], True)
-    #     """
+        Examples
+        --------
 
-    #     return [[]]
+        >>> locator = PostcodeLocator()
+        >>> locator.get_postcodes_by_radius((51.4981, -0.1773), [0.13e3])
+        >>> locator.get_postcodes_by_radius((51.4981, -0.1773),
+                                            [0.4e3, 0.2e3], True)
+        """
+        place_list = []
+        selector = 'Sector_Postcode' if sector is True else 'Postcode'
+        df = self.postcode_df
+        df['Distance'] = self.norm(
+            np.stack(
+                [df['Latitude'].to_numpy(), df['Longitude'].to_numpy()],
+                axis=1), X
+        )
+        for r in radii:
+            place_list = df[df['Distance'] < r][selector].to_list() +\
+                place_list
+        return list(set(place_list))
 
     def get_population_of_postcode(self, postcodes, sector=False):
         """
