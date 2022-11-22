@@ -1,6 +1,7 @@
 import pandas as pd
 from numpy import sin, cos, arcsin, arctan
 import numpy as np
+from scipy.stats import norm
 from locator import PostcodeLocator
 
 locator = PostcodeLocator(
@@ -81,7 +82,7 @@ fiducial_stdevs = {'radius': 1, 'angle': 1, 'strength': 5e6,
 
 
 def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
-                pressure=27.e3, nsamples=100, sector=True):
+                pressure=27.e3, nsamples=1, sector=True):
     """
     Perform an uncertainty analysis to calculate the risk for each affected
     UK postcode or postcode sector
@@ -118,6 +119,17 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
         the associated risk. These should be called ``postcode`` or ``sector``,
         and ``risk``.
     """
+    params = list(zip(fiducial_means.values(), fiducial_stdevs.values()))
+    for i in range(nsamples):
+        # print(norm.rvs(*params[0], 1)[0])
+        radius, angle, strength, density, velocity, lat, lon, bearing = [
+            norm.rvs(*param, 1)[0] for param in params
+        ]
+        result = planet.solve_atmospheric_entry(
+            radius, velocity, density, strength, angle
+        )
+        analysis = planet.analyse_outcome(result)
+        return analysis
     if sector:
         return pd.DataFrame({'sector': '', 'risk': 0}, index=range(1))
     else:
