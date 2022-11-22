@@ -35,8 +35,26 @@ def great_circle_distance(latlon1, latlon2):
         print(great_circle_distance([[54.0, 0.0], [55, 0.0]], [55, 1.0]))
     [1.286e+05 6.378e+04]
     """
-
-    distance = np.empty((len(latlon1), len(latlon2)), float)
+    R_p = 6371e3
+    latlon1 = np.array(latlon1) * np.pi / 180
+    latlon2 = np.array(latlon2) * np.pi / 180
+    if (latlon1.ndim == 1):
+        latlon1 = latlon1.reshape(1, *latlon1.shape)
+    if (latlon2.ndim == 1):
+        latlon2 = latlon2.reshape(1, *latlon2.shape)
+    lat1 = latlon1[:, 0]
+    lat2 = latlon2[:, 0]
+    lon1 = latlon1[:, 1]
+    lon2 = latlon2[:, 1]
+    lon_diff = np.abs(
+        (lon1.reshape(len(lon1), 1)) -
+        (lon2.reshape(1, len(lon2)))
+    )
+    distance = np.arccos(
+        np.sin(lat1).reshape(len(lat1), 1)*np.sin(lat2).reshape(1, len(lat2)) +
+        np.cos(lat1).reshape(len(lat1), 1)*np.cos(lat2).reshape(1, len(lat2)) *
+        np.cos(lon_diff)
+    ) * R_p
     return distance
 
 
@@ -63,6 +81,9 @@ class PostcodeLocator(object):
 
         """
         self.postcode_df = pd.read_csv(postcode_file)
+        self.postcode_df['Sector_Postcode'] = self.postcode_df.apply(
+            lambda row: (row['Postcode'][:4].strip()), axis=1
+        )
         self.census_df = pd.read_csv(census_file)
         self.norm = norm
 
@@ -89,7 +110,6 @@ class PostcodeLocator(object):
 
     #     Examples
     #     --------
-
     #     >>> locator = PostcodeLocator()
     #     >>> locator.get_postcodes_by_radius((51.4981, -0.1773), [0.13e3])
     #     >>> locator.get_postcodes_by_radius((51.4981, -0.1773),
@@ -154,7 +174,3 @@ class PostcodeLocator(object):
 
         result = result.tolist()
         return result
-
-temp = PostcodeLocator('resources/full_postcodes.csv', 'resources/population_by_postcode_sector.csv')
-# print(temp.get_population_of_postcode([['AL1 2AA']], sector = True))  # [[38.0]]
-print(temp.get_population_of_postcode([['SW7 2AZ', 'SW7 2BT', 'SW7 2BU', 'SW7 2DD']]))  # [[19.0, 19.0, 19.0, 19.0]]

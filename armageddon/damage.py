@@ -1,4 +1,6 @@
 import pandas as pd
+from numpy import sin, cos, arcsin, arctan
+import numpy as np
 
 
 def damage_zones(outcome, lat, lon, bearing, pressures):
@@ -42,11 +44,24 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
                                 pressures=[1e3, 3.5e3, 27e3, 43e3])
     """
 
-    # Replace this code with your own. For demonstration we just
-    # return lat, lon and a radius of 5000 m for each pressure
-    blat = lat
-    blon = lon
-    damrad = [5000.] * len(pressures)
+    r_h = outcome['burst_distance']
+    Ek = outcome['burst_energy']
+    zb = outcome['burst_altitude']
+    Rp = 6371e3
+    pressures = np.array(pressures)
+
+    sin_blat = ((sin(lat) * cos(r_h / Rp)) +
+                (cos(lat) * sin(r_h / Rp) * cos(bearing)))
+    blat = arcsin(sin_blat)
+
+    tan_blon_diff = ((sin(bearing) * sin(r_h / Rp) * cos(lat)) /
+                     (cos(r_h / Rp) - (sin(lat) * sin(blat))))
+    blon = arctan(tan_blon_diff) + lon
+
+    discriminant = np.sqrt((3.24e14 + (1.256e12 * pressures)))
+    pre_sol = (((((-1.8e7 + discriminant) / 6.28e11)**(-2/1.3)) *
+                (Ek**(2/3))) - (zb**2))
+    damrad = np.sqrt(pre_sol)
 
     
 
