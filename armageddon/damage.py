@@ -3,6 +3,12 @@ from numpy import sin, cos, arcsin, arctan
 import numpy as np
 from solver import Planet
 from locator import PostcodeLocator
+from scipy.stats import norm
+
+locator = PostcodeLocator(
+    '../resources/full_postcodes.csv',
+    '../resources/population_by_postcode_sector.csv',
+)
 
 
 def damage_zones(outcome, lat, lon, bearing, pressures):
@@ -69,6 +75,8 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
                 (Ek**(2/3))) - (zb**2))
     damrad = np.sqrt(pre_sol)
 
+    
+
     return blat, blon, damrad
 
 
@@ -118,65 +126,27 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
         the associated risk. These should be called ``postcode`` or ``sector``,
         and ``risk``.
     """
-
-    radius_vals = np.random.normal(means['radius'],
-                                   stdevs['radius'], nsamples)
-    velocity_vals = np.random.normal(means['velocity'],
-                                   stdevs['velocity'], nsamples)
-    density_vals = np.random.normal(means['density'],
-                                   stdevs['density'], nsamples)
-    strength_vals = np.random.normal(means['strength'],
-                                   stdevs['strength'], nsamples)
-    angle_vals = np.random.normal(means['angle'],
-                                   stdevs['angle'], nsamples)
-    lat_vals = np.random.normal(means['lat'],
-                                   stdevs['lat'], nsamples)
-    lon_vals = np.random.normal(means['lon'],
-                                   stdevs['lon'], nsamples)
-    bearing_vals = np.random.normal(means['bearing'],
-                                   stdevs['bearing'], nsamples)
-    postcodes_dam_list = np.array([])
-    postcodelocator = PostcodeLocator()
-
+    params = list(zip(means.values(), stdevs.values()))
+    postcodes = []
     for i in range(nsamples):
-        df = planet.solve_atmospheric_entry(
-            radius_vals[i],
-            velocity_vals[i],
-            density_vals[i],
-            strength_vals[i],
-            angle_vals[i]
+        # print(norm.rvs(*params[0], 1)[0])
+        radius, angle, strength, density, velocity, lat, lon, bearing = [
+            norm.rvs(*param, 1)[0] for param in params
+        ]
+        result = planet.solve_atmospheric_entry(
+            radius, velocity, density, strength, angle
         )
-        result = planet.calculate_energy(df)
-        outcome = planet.analyse_outcome(result)
+        analysis = planet.analyse_outcome(result)
         blat, blon, damrad = damage_zones(
-            outcome,
-            lat_vals[i],
-            lon_vals[i],
-            bearing_vals[i],
-            pressure
+            analysis, lat, lon, bearing, pressure
         )
-        print(blat, blon, damrad)
-        postcodes_dam = postcodelocator.get_postcodes_by_radius(
-            [blat, blon],
-            [damrad],
-            sector=False
-        )
-        postcodes_dam_list = np.append(postcodes_dam_list, postcodes_dam)
-    dam, number = np.unique(postcodes_dam_list, return_counts=True)
-    print(np.array([dam]))
-    prob = number / nsamples
-    postcode_pop = postcodelocator.get_population_of_postcode(
-        np.array([dam]),
-        sector=False
-    )
-    print(postcode_pop)
-    # risk = postcode_pop * prob
-    # print(pd.DataFrame({'postcodes': dam, 'numbers of time': prob}))
+        print(blat, blon, damrad, '#')
+        damcode = locator.get_postcodes_by_radius((blat, blon), [damrad], sector)
+        postcodes = postcodes + damcode
+    postcode_sq = pd.Series(data=np.array(postcodes))
+    return postcode_sq.value_counts().sort_values(ascending=False)
     
-
-    if sector:
-        return pd.DataFrame({'sector': '', 'risk': 0}, index=range(1))
-    else:
-        return pd.DataFrame({'postcode': '', 'risk': 0}, index=range(1))
-
-print(impact_risk(planet=Planet(), means=fiducial_means, stdevs=fiducial_stdevs, pressure=27.e3, nsamples=10, sector=False))
+    #if sector:
+        #return pd.DataFrame({'sector': '', 'risk': 0}, index=range(1))
+    #else:
+        #return pd.DataFrame({'postcode': '', 'risk': 0}, index=range(1))

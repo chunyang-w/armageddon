@@ -155,11 +155,33 @@ class PostcodeLocator(object):
                                                  'SW7 2BU', 'SW7 2DD']])
         >>> locator.get_population_of_postcode([['SW7  2']], True)
         """
+        pc = np.array(postcodes)
+        m,n = pc.shape
+        result = np.zeros(pc.shape)
 
-        return [[]]
+        for i in range(m):
+            for j in range(n):
+                district, sector = pc[i][j].split()
 
-    def in_area(self, lat, lon, radii, point):
-        if (((lat - radii) < point[0]) and ((lat + radii) > point[0])):
-            if ((lon - radii < point[1]) and (lon + radii > point[1])):
-                return True
-        return False
+                if len(district) == 3:
+                    searchSector = district+'  '+sector[0]
+                else:
+                    searchSector = district+' '+sector[0]
+                    
+                sectorPopulation = self.census_df.loc[self.census_df['geography'] == searchSector]['Variable: All usual residents; measures: Value']
+
+                if sector == True:
+                    result[i][j] = sectorPopulation
+                else:
+                    if len(district) == 3:
+                        search = district+' '+sector[0]
+                    else:
+                        search = district+sector[0]
+   
+                    count = self.postcode_df['Postcode'].str.contains(search, na=False).sum()
+
+                    unitPopulation = sectorPopulation/float(count)
+                    result[i][j] = np.ceil(unitPopulation)
+
+        result = result.tolist()
+        return result
