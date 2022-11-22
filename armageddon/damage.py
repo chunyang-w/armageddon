@@ -2,7 +2,7 @@ import pandas as pd
 from numpy import sin, cos, arcsin, arctan
 import numpy as np
 from scipy.stats import norm
-from locator import PostcodeLocator
+from armageddon.locator import PostcodeLocator
 
 locator = PostcodeLocator(
     '../resources/full_postcodes.csv',
@@ -69,9 +69,6 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     pre_sol = (((((-1.8e7 + discriminant) / 6.28e11)**(-2/1.3)) *
                 (Ek**(2/3))) - (zb**2))
     damrad = np.sqrt(pre_sol)
-
-    
-
     return blat, blon, damrad
 
 
@@ -136,7 +133,8 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
             analysis, lat, lon, bearing, pressure
         )
         print(blat, blon, damrad, '#')
-        damcode = locator.get_postcodes_by_radius((blat, blon), [damrad], sector)
+        damcode = locator.get_postcodes_by_radius(
+            (blat, blon), [damrad], sector)
         postcodes = postcodes + damcode
     postcode_sq = pd.Series(data=np.array(postcodes))
     return postcode_sq.value_counts().sort_values(ascending=False)
