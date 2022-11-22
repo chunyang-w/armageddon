@@ -127,19 +127,34 @@ class PostcodeLocator(object):
         pc = np.array(postcodes)
         m,n = pc.shape
         result = np.zeros(pc.shape)
-        if sector :
-            for i in range(m):
-                for j in range(n):
-                    district, sector = pc[i][j].split()
 
-                    if len(district) == 3:
-                        searchSector = district+'  '+sector[0]
-                    if len(district) == 4:
-                        searchSector = district+' '+sector[0]
+        for i in range(m):
+            for j in range(n):
+                district, sector = pc[i][j].split()
+
+                if len(district) == 3:
+                    searchSector = district+'  '+sector[0]
+                else:
+                    searchSector = district+' '+sector[0]
                     
-                    result[i][j] = int(self.census_df.loc[self.census_df['geography'] == searchSector]['Variable: All usual residents; measures: Value'])
+                sectorPopulation = self.census_df.loc[self.census_df['geography'] == searchSector]['Variable: All usual residents; measures: Value']
+
+                if sector == True:
+                    result[i][j] = sectorPopulation
+                else:
+                    if len(district) == 3:
+                        search = district+' '+sector[0]
+                    else:
+                        search = district+sector[0]
+   
+                    count = self.postcode_df['Postcode'].str.contains(search, na=False).sum()
+
+                    unitPopulation = sectorPopulation/float(count)
+                    result[i][j] = np.ceil(unitPopulation)
+
         result = result.tolist()
         return result
 
 temp = PostcodeLocator('resources/full_postcodes.csv', 'resources/population_by_postcode_sector.csv')
-print(temp.get_population_of_postcode([['B74 4', 'SW7 2BT', 'SW7 2BU', 'SW7 2DD']], sector = True))
+# print(temp.get_population_of_postcode([['AL1 2AA']], sector = True))  # [[38.0]]
+print(temp.get_population_of_postcode([['SW7 2AZ', 'SW7 2BT', 'SW7 2BU', 'SW7 2DD']]))  # [[19.0, 19.0, 19.0, 19.0]]
