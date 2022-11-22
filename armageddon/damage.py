@@ -1,4 +1,18 @@
 import pandas as pd
+from numpy import sin, cos, arcsin, arctan
+import numpy as np
+from scipy.stats import norm
+from armageddon.locator import PostcodeLocator
+import os
+
+locator = PostcodeLocator(
+        os.sep.join((os.path.dirname(__file__), '..',
+                     'resources',
+                     'full_postcodes.csv')),
+        os.sep.join((os.path.dirname(__file__), '..',
+                     'resources',
+                     'population_by_postcode_sector.csv'))
+    )
 
 
 def damage_zones(outcome, lat, lon, bearing, pressures):
@@ -41,13 +55,29 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     >>> armageddon.damage_zones(outcome, 52.79, -2.95, 135,
                                 pressures=[1e3, 3.5e3, 27e3, 43e3])
     """
+    r_h = outcome['burst_distance']
+    Ek = outcome['burst_energy']
+    zb = outcome['burst_altitude']
+    Rp = 6371e3
+    pressures = np.array(pressures)
+    lat = np.deg2rad(lat)
+    lon = np.deg2rad(lon)
 
-    # Replace this code with your own. For demonstration we just
-    # return lat, lon and a radius of 5000 m for each pressure
-    blat = lat
-    blon = lon
-    damrad = [5000.] * len(pressures)
+    sin_blat = ((sin(lat) * cos(r_h / Rp)) +
+                (cos(lat) * sin(r_h / Rp) * cos(bearing)))
+                
+    blat = arcsin(sin_blat)
+    blat = float(np.rad2deg(blat))
 
+    tan_blon_diff = ((sin(bearing) * sin(r_h / Rp) * cos(lat)) /
+                     (cos(r_h / Rp) - (sin(lat) * sin(blat))))
+    blon = arctan(tan_blon_diff) + lon
+    blon = float(np.rad2deg(blon))
+
+    discriminant = np.sqrt((3.24e14 + (1.256e12 * pressures)))
+    pre_sol = (((((-1.8e7 + discriminant) / 6.28e11)**(-2/1.3)) *
+                (Ek**(2/3))) - (zb**2))
+    damrad = np.sqrt(pre_sol).tolist()
     return blat, blon, damrad
 
 
@@ -97,8 +127,24 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
         the associated risk. These should be called ``postcode`` or ``sector``,
         and ``risk``.
     """
-
-    if sector:
-        return pd.DataFrame({'sector': '', 'risk': 0}, index=range(1))
-    else:
-        return pd.DataFrame({'postcode': '', 'risk': 0}, index=range(1))
+    params = list(zip(means.values(), stdevs.values()))
+    postcodes = []
+    for i in range(nsamples):
+        radius, angle, strength, density, velocity, lat, lon, bearing = [
+            norm.rvs(*param, 1)[0] for param in params
+        ]
+        result = planet.solve_atmospheric_entry(
+            radius, velocity, density, strength, angle
+        )
+        analysis = planet.analyse_outcome(result)
+        blat, blon, damrad = damage_zones(
+            analysis, lat, lon, bearing, pressure
+        )
+        damcode = locator.get_postcodes_by_radius(
+            (blat, blon), [damrad], sector)[0]
+        postcodes = postcodes + damcode
+    postcode_sq = pd.Series(data=np.array(postcodes))
+    postcode_sq = postcode_sq.value_counts().sort_values(ascending=False)
+    prob = postcode_sq / nsamples
+    locator.get_population_of_postcode()
+    return prob
