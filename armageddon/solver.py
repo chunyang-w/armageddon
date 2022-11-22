@@ -199,7 +199,7 @@ class Planet():
         velocity = result["velocity"]
         altitude = np.array(result["altitude"])
         dezd = np.array(0.5 * mass * velocity**2)
-        temp = (dezd[1:] - dezd[:-1])/(altitude[:-1]- altitude[1:])
+        temp = (dezd[1:] - dezd[:-1])/(altitude[:-1] - altitude[1:])
         temp = np.insert(temp, 0, 0)
         result.insert(len(result.columns),
                       'dedz', -temp)
