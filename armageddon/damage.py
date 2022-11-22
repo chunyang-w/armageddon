@@ -4,6 +4,7 @@ import numpy as np
 from solver import Planet
 from locator import PostcodeLocator
 from scipy.stats import norm
+import mapping
 
 locator = PostcodeLocator(
     '../resources/full_postcodes.csv',
@@ -11,7 +12,7 @@ locator = PostcodeLocator(
 )
 
 
-def damage_zones(outcome, lat, lon, bearing, pressures):
+def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
     """
     Calculate the latitude and longitude of the surface zero location and the
     list of airblast damage radii (m) for a given impact scenario.
@@ -29,6 +30,8 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
         Bearing (azimuth) relative to north of meteoroid trajectory (degrees)
     pressures: float, arraylike
         List of threshold pressures to define airblast damage levels
+    plot: bool
+        Boolean value to decide plotting
 
     Returns
     -------
@@ -40,6 +43,9 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     damrad: arraylike, float
         List of distances specifying the blast radii
         for the input damage levels
+    plot: plot object
+        The plot specifying the areas effected by
+        each damage level
 
     Examples
     --------
@@ -75,7 +81,21 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
                 (Ek**(2/3))) - (zb**2))
     damrad = np.sqrt(pre_sol)
 
-    
+    if map == True:
+        for rad_index in range(len(damrad)):
+            if rad_index == 0:
+                map = mapping.plot_circle(
+                    blat, blon,
+                    damrad[rad_index],
+                    map=None
+                )
+            else:
+                map = mapping.plot_circle(
+                    blat, blon,
+                    damrad[rad_index],
+                    map
+                )
+        return blat, blon, damrad, map
 
     return blat, blon, damrad
 
@@ -129,7 +149,6 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
     params = list(zip(means.values(), stdevs.values()))
     postcodes = []
     for i in range(nsamples):
-        # print(norm.rvs(*params[0], 1)[0])
         radius, angle, strength, density, velocity, lat, lon, bearing = [
             norm.rvs(*param, 1)[0] for param in params
         ]
@@ -144,9 +163,15 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
         damcode = locator.get_postcodes_by_radius((blat, blon), [damrad], sector)
         postcodes = postcodes + damcode
     postcode_sq = pd.Series(data=np.array(postcodes))
-    return postcode_sq.value_counts().sort_values(ascending=False)
-    
+    postcode_sq = postcode_sq.value_counts().sort_values(ascending=False)
+    prob = postcode_sq.values / nsamples
+    print(np.array(postcode_sq.index))
+    risk = prob * locator.get_population_of_postcode(np.array(postcode_sq.index))
+    return risk
     #if sector:
         #return pd.DataFrame({'sector': '', 'risk': 0}, index=range(1))
     #else:
         #return pd.DataFrame({'postcode': '', 'risk': 0}, index=range(1))
+
+impact_risk(Planet(), means=fiducial_means, stdevs=fiducial_stdevs,
+                pressure=27.e3, nsamples=10, sector=False)
