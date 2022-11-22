@@ -125,9 +125,10 @@ class PostcodeLocator(object):
                 axis=1), X
         )
         for r in radii:
-            place_list = df[df['Distance'] < r][selector].to_list() +\
-                place_list
-        return [list(set(place_list))]
+            place_list.append(list(
+                set(df[df['Distance'] < r][selector].to_list())
+            ))
+        return place_list
 
     def get_population_of_postcode(self, postcodes, sector=False):
         """
