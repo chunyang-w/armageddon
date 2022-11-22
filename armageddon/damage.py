@@ -70,6 +70,8 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
                 (Ek**(2/3))) - (zb**2))
     damrad = np.sqrt(pre_sol)
 
+    
+
     return blat, blon, damrad
 
 
