@@ -157,9 +157,3 @@ class PostcodeLocator(object):
         """
 
         return [[]]
-
-    def in_area(self, lat, lon, radii, point):
-        if (((lat - radii) < point[0]) and ((lat + radii) > point[0])):
-            if ((lon - radii < point[1]) and (lon + radii > point[1])):
-                return True
-        return False
