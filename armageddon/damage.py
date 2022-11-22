@@ -1,8 +1,9 @@
 import pandas as pd
 from numpy import sin, cos, arcsin, arctan
 import numpy as np
-from scipy.stats import norm
+from solver import Planet
 from locator import PostcodeLocator
+from scipy.stats import norm
 
 locator = PostcodeLocator(
     '../resources/full_postcodes.csv',
@@ -56,14 +57,18 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     zb = outcome['burst_altitude']
     Rp = 6371e3
     pressures = np.array(pressures)
+    lat = np.deg2rad(lat)
+    lon = np.deg2rad(lon)
 
     sin_blat = ((sin(lat) * cos(r_h / Rp)) +
                 (cos(lat) * sin(r_h / Rp) * cos(bearing)))
     blat = arcsin(sin_blat)
+    blat = np.rad2deg(blat)
 
     tan_blon_diff = ((sin(bearing) * sin(r_h / Rp) * cos(lat)) /
                      (cos(r_h / Rp) - (sin(lat) * sin(blat))))
     blon = arctan(tan_blon_diff) + lon
+    blon = np.rad2deg(blon)
 
     discriminant = np.sqrt((3.24e14 + (1.256e12 * pressures)))
     pre_sol = (((((-1.8e7 + discriminant) / 6.28e11)**(-2/1.3)) *
@@ -140,3 +145,8 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
         postcodes = postcodes + damcode
     postcode_sq = pd.Series(data=np.array(postcodes))
     return postcode_sq.value_counts().sort_values(ascending=False)
+    
+    #if sector:
+        #return pd.DataFrame({'sector': '', 'risk': 0}, index=range(1))
+    #else:
+        #return pd.DataFrame({'postcode': '', 'risk': 0}, index=range(1))
