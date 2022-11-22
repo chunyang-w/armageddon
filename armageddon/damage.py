@@ -1,6 +1,8 @@
 import pandas as pd
 from numpy import sin, cos, arcsin, arctan
 import numpy as np
+from solver import Planet
+from locator import PostcodeLocator
 
 
 def damage_zones(outcome, lat, lon, bearing, pressures):
@@ -49,14 +51,18 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     zb = outcome['burst_altitude']
     Rp = 6371e3
     pressures = np.array(pressures)
+    lat = np.deg2rad(lat)
+    lon = np.deg2rad(lon)
 
     sin_blat = ((sin(lat) * cos(r_h / Rp)) +
                 (cos(lat) * sin(r_h / Rp) * cos(bearing)))
     blat = arcsin(sin_blat)
+    blat = np.rad2deg(blat)
 
     tan_blon_diff = ((sin(bearing) * sin(r_h / Rp) * cos(lat)) /
                      (cos(r_h / Rp) - (sin(lat) * sin(blat))))
     blon = arctan(tan_blon_diff) + lon
+    blon = np.rad2deg(blon)
 
     discriminant = np.sqrt((3.24e14 + (1.256e12 * pressures)))
     pre_sol = (((((-1.8e7 + discriminant) / 6.28e11)**(-2/1.3)) *
@@ -113,7 +119,64 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
         and ``risk``.
     """
 
+    radius_vals = np.random.normal(means['radius'],
+                                   stdevs['radius'], nsamples)
+    velocity_vals = np.random.normal(means['velocity'],
+                                   stdevs['velocity'], nsamples)
+    density_vals = np.random.normal(means['density'],
+                                   stdevs['density'], nsamples)
+    strength_vals = np.random.normal(means['strength'],
+                                   stdevs['strength'], nsamples)
+    angle_vals = np.random.normal(means['angle'],
+                                   stdevs['angle'], nsamples)
+    lat_vals = np.random.normal(means['lat'],
+                                   stdevs['lat'], nsamples)
+    lon_vals = np.random.normal(means['lon'],
+                                   stdevs['lon'], nsamples)
+    bearing_vals = np.random.normal(means['bearing'],
+                                   stdevs['bearing'], nsamples)
+    postcodes_dam_list = np.array([])
+    postcodelocator = PostcodeLocator()
+
+    for i in range(nsamples):
+        df = planet.solve_atmospheric_entry(
+            radius_vals[i],
+            velocity_vals[i],
+            density_vals[i],
+            strength_vals[i],
+            angle_vals[i]
+        )
+        result = planet.calculate_energy(df)
+        outcome = planet.analyse_outcome(result)
+        blat, blon, damrad = damage_zones(
+            outcome,
+            lat_vals[i],
+            lon_vals[i],
+            bearing_vals[i],
+            pressure
+        )
+        print(blat, blon, damrad)
+        postcodes_dam = postcodelocator.get_postcodes_by_radius(
+            [blat, blon],
+            [damrad],
+            sector=False
+        )
+        postcodes_dam_list = np.append(postcodes_dam_list, postcodes_dam)
+    dam, number = np.unique(postcodes_dam_list, return_counts=True)
+    print(np.array([dam]))
+    prob = number / nsamples
+    postcode_pop = postcodelocator.get_population_of_postcode(
+        np.array([dam]),
+        sector=False
+    )
+    print(postcode_pop)
+    # risk = postcode_pop * prob
+    # print(pd.DataFrame({'postcodes': dam, 'numbers of time': prob}))
+    
+
     if sector:
         return pd.DataFrame({'sector': '', 'risk': 0}, index=range(1))
     else:
         return pd.DataFrame({'postcode': '', 'risk': 0}, index=range(1))
+
+print(impact_risk(planet=Planet(), means=fiducial_means, stdevs=fiducial_stdevs, pressure=27.e3, nsamples=10, sector=False))
