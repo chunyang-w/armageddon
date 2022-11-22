@@ -3,8 +3,14 @@
 import numpy as np
 import pandas as pd
 
-__all__ = ['PostcodeLocator', 'great_circle_distance']
+__all__ = ['PostcodeLocator', 'great_circle_distance', 'get_sector_code']
 
+def get_sector_code(code):
+    code = code[:-2]
+    code = code.replace(' ', '')
+    code = code.replace(' ', '')
+    code = code[:-1] + ' ' + code[-1]
+    return code
 
 def great_circle_distance(latlon1, latlon2):
     """
@@ -31,58 +37,40 @@ def great_circle_distance(latlon1, latlon2):
 
     >>> import numpy
     >>> fmt = lambda x: numpy.format_float_scientific(x, precision=3)
-    >>> with numpy.printoptions(formatter={'all': fmt}):
-    >>> print(great_circle_distance([[54.0, 0.0], [55, 0.0]], [55, 1.0]))
-    [1.286e+05 6.378e+04]
+    >>> with numpy.printoptions(formatter={'all': fmt}):\
+    print(great_circle_distance([[54.0, 0.0], [55, 0.0]], [55, 1.0]))
+    [[1.286e+05]
+     [6.378e+04]]
     """
 
-    Rp = 6371000
-
-    latlon1 = np.array(latlon1)*np.pi/180
-    latlon2 = np.array(latlon2)*np.pi/180
-
-    if latlon1.ndim == 1:
-        latlon1 = latlon1.reshape(1, 2)
-
-    if latlon2.ndim == 1:
-        latlon2 = latlon2.reshape(1, 2)
-
-    distance = np.empty((len(latlon1), len(latlon2)), float)
-
+    R_p = 6371e3
+    latlon1 = np.array(latlon1) * np.pi / 180
+    latlon2 = np.array(latlon2) * np.pi / 180
+    if (latlon1.ndim == 1):
+        latlon1 = latlon1.reshape(1, *latlon1.shape)
+    if (latlon2.ndim == 1):
+        latlon2 = latlon2.reshape(1, *latlon2.shape)
     lat1 = latlon1[:, 0]
     lat2 = latlon2[:, 0]
     lon1 = latlon1[:, 1]
     lon2 = latlon2[:, 1]
-
-    for i in range(len(latlon1)):
-
-        for j in range(len(latlon2)):
-            num = np.sqrt((np.cos(lat2[j]) *
-                           np.sin(abs(lon1[i] - lon2[j])))**2 +
-                          (np.cos(lat1[i]) * np.sin(lat2[j]) -
-                           np.sin(lat1[i]) * np.cos(lat2[j]) *
-                           np.cos(abs(lon1[i] - lon2[j])))**2)
-            den = np.sin(lat1[i]) * np.sin(lat2[j]) + np.cos(lat1[i]) *\
-                np.cos(lat2[j]) * np.cos(abs(lon1[i] - lon2[j]))
-            dis = Rp * np.arctan(num / den)
-
-            distance[i][j] = dis
-
+    lon_diff = np.abs(
+        (lon1.reshape(len(lon1), 1)) -
+        (lon2.reshape(1, len(lon2)))
+    )
+    distance = np.arccos(
+        np.sin(lat1).reshape(len(lat1), 1)*np.sin(lat2).reshape(1, len(lat2)) +
+        np.cos(lat1).reshape(len(lat1), 1)*np.cos(lat2).reshape(1, len(lat2)) *
+        np.cos(lon_diff)
+    ) * R_p
     return distance
-# pnts1 = np.array([[54.0, 0.0], [55.0, 1.0], [54.2, -3.0]])
-# pnts2 = np.array([[55.0, 1.0], [56.0, -2.1], [54.001, -0.003]])
-# print(great_circle_distance(pnts1, pnts2))
-# fmt = lambda x: np.format_float_scientific(x, precision=3)
-# with np.printoptions(formatter={'all': fmt}):
-#     print(great_circle_distance([[54.0, 0.0], [55, 0.0]], [55, 1.0]))
-    # print(great_circle_distance(pnts1, pnts2))
 
 
 class PostcodeLocator(object):
     """Class to interact with a postcode database file."""
 
-    def __init__(self, postcode_file='',
-                 census_file='',
+    def __init__(self, postcode_file='../resources/full_postcodes.csv',
+                 census_file='../resources/population_by_postcode_sector.csv',
                  norm=great_circle_distance):
         """
         Parameters
@@ -102,7 +90,7 @@ class PostcodeLocator(object):
         """
         self.postcode_df = pd.read_csv(postcode_file)
         self.postcode_df['Sector_Postcode'] = self.postcode_df.apply(
-            lambda row: (row['Postcode'][:4].strip()), axis=1
+            lambda row: get_sector_code(row['Postcode']), axis=1
         )
         self.census_df = pd.read_csv(census_file)
         self.norm = norm
@@ -132,8 +120,21 @@ class PostcodeLocator(object):
         --------
 
         >>> locator = PostcodeLocator('resources/full_postcodes.csv', 'resources/population_by_postcode_sector.csv')
-        >>> locator.get_postcodes_by_radius((51.4981, -0.1773), [0.13e3])
-        >>> locator.get_postcodes_by_radius((51.4981, -0.1773), [0.4e3, 0.2e3], True)
+        >>> postcodes = locator.get_postcodes_by_radius((51.4981, -0.1773), [0.13e3])
+        >>> postcode_dictionaries = [dict.fromkeys(postcodes[i], "risk") for i in range(len(postcodes))]
+        >>> ans1 = [{'SW7 5HG': 'risk','SW7 2BU': 'risk','SW7 5HQ': 'risk',\
+                    'SW7 2BT': 'risk','SW7 5HF': 'risk','SW7 2DD': 'risk',\
+                    'SW7 2AZ': 'risk'}]
+        >>> postcode_dictionaries == ans1
+        True
+        >>> postcodes = locator.get_postcodes_by_radius((51.4981, -0.1773), [0.4e3, 0.2e3], True)
+        >>> postcode_dictionaries = [dict.fromkeys(postcodes[i], "risk") for i in range(len(postcodes))]
+        >>> ans2 = [{'SW7 4': 'risk','SW7 5': 'risk','SW7 3': 'risk',\
+                    'SW7 1': 'risk','SW7 9': 'risk', 'SW7 2': 'risk'},\
+                   {'SW7 4': 'risk','SW7 5': 'risk','SW7 3': 'risk',\
+                    'SW7 1': 'risk','SW7 9': 'risk','SW7 2': 'risk'}]
+        >>> postcode_dictionaries == ans2
+        True
         """
 
         place_list = []
@@ -145,9 +146,10 @@ class PostcodeLocator(object):
                 axis=1), X
         )
         for r in radii:
-            place_list = df[df['Distance'] < r][selector].to_list() +\
-                place_list
-        return list(set(place_list))
+            place_list.append(list(
+                set(df[df['Distance'] < r][selector].to_list())
+            ))
+        return place_list
 
     def get_population_of_postcode(self, postcodes, sector=False):
         """
@@ -217,8 +219,8 @@ class PostcodeLocator(object):
         result = result.tolist()
         return result
 locator = PostcodeLocator('resources/full_postcodes.csv', 'resources/population_by_postcode_sector.csv')
-print(locator.get_population_of_postcode([['BS99 72R']]))
-# print(locator.get_postcodes_by_radius((51.4981, -0.1773), [0.13e3]))
+# print(locator.get_population_of_postcode(locator.get_postcodes_by_radius((51.4981, -0.1773), [0.4e3, 0.2e3], True), True))
+print(locator.get_postcodes_by_radius((51.4981, -0.1773), [13e2]))
 
 
 
