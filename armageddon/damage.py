@@ -55,7 +55,6 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     >>> armageddon.damage_zones(outcome, 52.79, -2.95, 135,
                                 pressures=[1e3, 3.5e3, 27e3, 43e3])
     """
-
     r_h = outcome['burst_distance']
     Ek = outcome['burst_energy']
     zb = outcome['burst_altitude']

@@ -31,7 +31,7 @@ def great_circle_distance(latlon1, latlon2):
 
     >>> import numpy
     >>> fmt = lambda x: numpy.format_float_scientific(x, precision=3)}
-    >>> with numpy.printoptions(formatter={'all', fmt}):
+    >>> with numpy.printoptions(formatter={'all': fmt}):
         print(great_circle_distance([[54.0, 0.0], [55, 0.0]], [55, 1.0]))
     [1.286e+05 6.378e+04]
     """
@@ -107,7 +107,6 @@ class PostcodeLocator(object):
             Contains the lists of postcodes closer than the elements
             of radii to the location X.
 
-
         Examples
         --------
 
@@ -162,25 +161,28 @@ class PostcodeLocator(object):
 
         for i in range(m):
             for j in range(n):
-                district, sector = pc[i][j].split()
+                district, sec = pc[i][j].split()
 
                 if len(district) == 3:
-                    searchSector = district+'  '+sector[0]
+                    searchSector = district+'  '+sec[0]
                 else:
-                    searchSector = district+' '+sector[0]
-                sectorPopulation = self.census_df.loc[
-                    self.census_df['geography'] == searchSector
-                    ]['Variable: All usual residents; measures: Value']
+                    searchSector = district+' '+sec[0]
+
+                col = 'Variable: All usual residents; measures: Value'
+                sectorPopulation = int(self.census_df.loc[self.census_df
+                                       ['geography']
+                                       == searchSector][col])
 
                 if sector is True:
                     result[i][j] = sectorPopulation
                 else:
                     if len(district) == 3:
-                        search = district+' '+sector[0]
+                        search = district+' '+sec[0]
                     else:
-                        search = district+sector[0]
-                    count = self.postcode_df['Postcode'].str.contains(
-                        search, na=False).sum()
+                        search = district+sec[0]
+
+                    count = self.postcode_df['Postcode']\
+                        .str.contains(search, na=False).sum()
 
                     unitPopulation = sectorPopulation/float(count)
                     result[i][j] = np.ceil(unitPopulation)
