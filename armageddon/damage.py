@@ -48,8 +48,6 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     blon = lon
     damrad = [5000.] * len(pressures)
 
-    
-
     return blat, blon, damrad
 
 
