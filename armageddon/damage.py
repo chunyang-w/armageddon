@@ -2,7 +2,6 @@ import pandas as pd
 from numpy import sin, cos, arcsin, arctan
 import numpy as np
 from scipy.stats import norm
-import mapping
 from armageddon.locator import PostcodeLocator
 import os
 
