@@ -86,21 +86,21 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
 
     damrad = np.sqrt(pre_sol).tolist()
 
-    if map == True:
-        for rad_index in range(len(damrad)):
-            if rad_index == 0:
-                map = mapping.plot_circle(
-                    blat, blon,
-                    damrad[rad_index],
-                    map=None
-                )
-            else:
-                map = mapping.plot_circle(
-                    blat, blon,
-                    damrad[rad_index],
-                    map
-                )
-        return blat, blon, damrad, map
+    # if map == True:
+    #     for rad_index in range(len(damrad)):
+    #         if rad_index == 0:
+    #             map = mapping.plot_circle(
+    #                 blat, blon,
+    #                 damrad[rad_index],
+    #                 map=None
+    #             )
+    #         else:
+    #             map = mapping.plot_circle(
+    #                 blat, blon,
+    #                 damrad[rad_index],
+    #                 map
+    #             )
+    #     return blat, blon, damrad, map
 
     return blat, blon, damrad
 
