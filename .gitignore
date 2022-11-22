@@ -10,3 +10,6 @@ __pycache__
 resources/full_postcodes.csv
 resources/population_by_postcode_sector.csv
 resources/.DS_Store
+
+armageddon/test.ipynb
+*.DS_Store

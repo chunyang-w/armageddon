@@ -35,8 +35,26 @@ def great_circle_distance(latlon1, latlon2):
         print(great_circle_distance([[54.0, 0.0], [55, 0.0]], [55, 1.0]))
     [1.286e+05 6.378e+04]
     """
-
-    distance = np.empty((len(latlon1), len(latlon2)), float)
+    R_p = 6371e3
+    latlon1 = np.array(latlon1) * np.pi / 180
+    latlon2 = np.array(latlon2) * np.pi / 180
+    if (latlon1.ndim == 1):
+        latlon1 = latlon1.reshape(1, *latlon1.shape)
+    if (latlon2.ndim == 1):
+        latlon2 = latlon2.reshape(1, *latlon2.shape)
+    lat1 = latlon1[:, 0]
+    lat2 = latlon2[:, 0]
+    lon1 = latlon1[:, 1]
+    lon2 = latlon2[:, 1]
+    lon_diff = np.abs(
+        (lon1.reshape(len(lon1), 1)) -
+        (lon2.reshape(1, len(lon2)))
+    )
+    distance = np.arccos(
+        np.sin(lat1).reshape(len(lat1), 1)*np.sin(lat2).reshape(1, len(lat2)) +
+        np.cos(lat1).reshape(len(lat1), 1)*np.cos(lat2).reshape(1, len(lat2)) *
+        np.cos(lon_diff)
+    ) * R_p
     return distance
 
 
@@ -63,6 +81,9 @@ class PostcodeLocator(object):
 
         """
         self.postcode_df = pd.read_csv(postcode_file)
+        self.postcode_df['Sector_Postcode'] = self.postcode_df.apply(
+            lambda row: (row['Postcode'][:4].strip()), axis=1
+        )
         self.census_df = pd.read_csv(census_file)
         self.norm = norm
 
@@ -95,8 +116,18 @@ class PostcodeLocator(object):
         >>> locator.get_postcodes_by_radius((51.4981, -0.1773),
                                             [0.4e3, 0.2e3], True)
         """
-
-        return [[]]
+        place_list = []
+        selector = 'Sector_Postcode' if sector is True else 'Postcode'
+        df = self.postcode_df
+        df['Distance'] = self.norm(
+            np.stack(
+                [df['Latitude'].to_numpy(), df['Longitude'].to_numpy()],
+                axis=1), X
+        )
+        for r in radii:
+            place_list = df[df['Distance'] < r][selector].to_list() +\
+                place_list
+        return list(set(place_list))
 
     def get_population_of_postcode(self, postcodes, sector=False):
         """
@@ -126,3 +157,9 @@ class PostcodeLocator(object):
         """
 
         return [[]]
+
+    def in_area(self, lat, lon, radii, point):
+        if (((lat - radii) < point[0]) and ((lat + radii) > point[0])):
+            if ((lon - radii < point[1]) and (lon + radii > point[1])):
+                return True
+        return False
