@@ -1,15 +1,20 @@
 import pandas as pd
 from numpy import sin, cos, arcsin, arctan
 import numpy as np
-from solver import Planet
-from locator import PostcodeLocator
 from scipy.stats import norm
 import mapping
+from armageddon.locator import PostcodeLocator
+import os
+
 
 locator = PostcodeLocator(
-    '../resources/full_postcodes.csv',
-    '../resources/population_by_postcode_sector.csv',
-)
+        os.sep.join((os.path.dirname(__file__), '..',
+                     'resources',
+                     'full_postcodes.csv')),
+        os.sep.join((os.path.dirname(__file__), '..',
+                     'resources',
+                     'population_by_postcode_sector.csv'))
+    )
 
 
 def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
@@ -57,7 +62,6 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
     >>> armageddon.damage_zones(outcome, 52.79, -2.95, 135,
                                 pressures=[1e3, 3.5e3, 27e3, 43e3])
     """
-
     r_h = outcome['burst_distance']
     Ek = outcome['burst_energy']
     zb = outcome['burst_altitude']
@@ -68,18 +72,20 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
 
     sin_blat = ((sin(lat) * cos(r_h / Rp)) +
                 (cos(lat) * sin(r_h / Rp) * cos(bearing)))
+                
     blat = arcsin(sin_blat)
-    blat = np.rad2deg(blat)
+    blat = float(np.rad2deg(blat))
 
     tan_blon_diff = ((sin(bearing) * sin(r_h / Rp) * cos(lat)) /
                      (cos(r_h / Rp) - (sin(lat) * sin(blat))))
     blon = arctan(tan_blon_diff) + lon
-    blon = np.rad2deg(blon)
+    blon = float(np.rad2deg(blon))
 
     discriminant = np.sqrt((3.24e14 + (1.256e12 * pressures)))
     pre_sol = (((((-1.8e7 + discriminant) / 6.28e11)**(-2/1.3)) *
                 (Ek**(2/3))) - (zb**2))
-    damrad = np.sqrt(pre_sol)
+
+    damrad = np.sqrt(pre_sol).tolist()
 
     if map == True:
         for rad_index in range(len(damrad)):
@@ -159,8 +165,8 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
         blat, blon, damrad = damage_zones(
             analysis, lat, lon, bearing, pressure
         )
-        print(blat, blon, damrad, '#')
-        damcode = locator.get_postcodes_by_radius((blat, blon), [damrad], sector)
+        damcode = locator.get_postcodes_by_radius(
+            (blat, blon), [damrad], sector)[0]
         postcodes = postcodes + damcode
     postcode_sq = pd.Series(data=np.array(postcodes))
     postcode_sq = postcode_sq.value_counts().sort_values(ascending=False)

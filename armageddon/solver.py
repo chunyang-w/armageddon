@@ -96,7 +96,7 @@ class Planet():
 
     def solve_atmospheric_entry(
             self, radius, velocity, density, strength, angle,
-            init_altitude=100e3, dt=0.05, radians=False, backend="FE"):
+            init_altitude=100e3, dt=0.05, radians=False, backend="RK4"):
         """
         Solve the system of differential equations for a given impact scenario
 
@@ -197,8 +197,9 @@ class Planet():
         result = result.copy()
         mass = result["mass"]
         velocity = result["velocity"]
+        altitude = np.array(result["altitude"])
         dezd = np.array(0.5 * mass * velocity**2)
-        temp = dezd[1:] - dezd[:-1]
+        temp = (dezd[1:] - dezd[:-1])/(altitude[:-1]- altitude[1:])
         temp = np.insert(temp, 0, 0)
         result.insert(len(result.columns),
                       'dedz', -temp)
