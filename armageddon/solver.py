@@ -225,6 +225,7 @@ class Planet():
                 ``burst_peak_dedz``, ``burst_altitude``,
                 ``burst_distance``, ``burst_energy``
         """
+        result = self.calculate_energy(result)
         burstidx = result['dedz'].idxmax()
         initial_energy = 0.5 * result["mass"][0] * result["velocity"][0]**2
         burstenergy = 0.5 * result["mass"][burstidx] * result["velocity"][burstidx]**2
