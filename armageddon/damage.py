@@ -130,7 +130,6 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
     params = list(zip(means.values(), stdevs.values()))
     postcodes = []
     for i in range(nsamples):
-        # print(norm.rvs(*params[0], 1)[0])
         radius, angle, strength, density, velocity, lat, lon, bearing = [
             norm.rvs(*param, 1)[0] for param in params
         ]
@@ -141,14 +140,11 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
         blat, blon, damrad = damage_zones(
             analysis, lat, lon, bearing, pressure
         )
-        print(blat, blon, damrad, '#')
         damcode = locator.get_postcodes_by_radius(
             (blat, blon), [damrad], sector)[0]
         postcodes = postcodes + damcode
     postcode_sq = pd.Series(data=np.array(postcodes))
-    return postcode_sq.value_counts().sort_values(ascending=False)
-    
-    #if sector:
-        #return pd.DataFrame({'sector': '', 'risk': 0}, index=range(1))
-    #else:
-        #return pd.DataFrame({'postcode': '', 'risk': 0}, index=range(1))
+    postcode_sq = postcode_sq.value_counts().sort_values(ascending=False)
+    prob = postcode_sq / nsamples
+    locator.get_population_of_postcode()
+    return prob
