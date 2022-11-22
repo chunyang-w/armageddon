@@ -38,9 +38,9 @@ def great_circle_distance(latlon1, latlon2):
     --------
 
     >>> import numpy
-    >>> fmt = lambda x: numpy.format_float_scientific(x, precision=3)}
+    >>> fmt = lambda x: numpy.format_float_scientific(x, precision=3)
     >>> with numpy.printoptions(formatter={'all': fmt}):
-        print(great_circle_distance([[54.0, 0.0], [55, 0.0]], [55, 1.0]))
+    >>> print(great_circle_distance([[54.0, 0.0], [55, 0.0]], [55, 1.0]))
     [1.286e+05 6.378e+04]
     """
     R_p = 6371e3
@@ -118,10 +118,9 @@ class PostcodeLocator(object):
         Examples
         --------
 
-        >>> locator = PostcodeLocator()
+        >>> locator = PostcodeLocator('resources/full_postcodes.csv', 'resources/population_by_postcode_sector.csv')
         >>> locator.get_postcodes_by_radius((51.4981, -0.1773), [0.13e3])
-        >>> locator.get_postcodes_by_radius((51.4981, -0.1773),
-                                            [0.4e3, 0.2e3], True)
+        >>> locator.get_postcodes_by_radius((51.4981, -0.1773), [0.4e3, 0.2e3], True)
         """
         place_list = []
         selector = 'Sector_Postcode' if sector is True else 'Postcode'
@@ -158,10 +157,13 @@ class PostcodeLocator(object):
         Examples
         --------
 
-        >>> locator = PostcodeLocator()
-        >>> locator.get_population_of_postcode([['SW7 2AZ', 'SW7 2BT',
-                                                 'SW7 2BU', 'SW7 2DD']])
-        >>> locator.get_population_of_postcode([['SW7  2']], True)
+        >>> locator = PostcodeLocator('resources/full_postcodes.csv', 'resources/population_by_postcode_sector.csv')
+        >>> pop1 = locator.get_population_of_postcode([['SW7 2AZ', 'SW7 2BT', 'SW7 2BU', 'SW7 2DD']])
+        >>> pop1
+        [[19.0, 19.0, 19.0, 19.0]]
+        >>> pop2 = locator.get_population_of_postcode([['SW7  2']], True)
+        >>> pop2
+        [[2283.0]]
         """
         pc = np.array(postcodes)
         m, n = pc.shape
@@ -177,9 +179,13 @@ class PostcodeLocator(object):
                     searchSector = district+' '+sec[0]
 
                 col = 'Variable: All usual residents; measures: Value'
-                sectorPopulation = int(self.census_df.loc[self.census_df
-                                       ['geography']
-                                       == searchSector][col])
+                try:
+                    sectorPopulation = int(self.census_df.loc[self.census_df
+                                           ['geography']
+                                           == searchSector][col])
+                except TypeError:
+                    print('Sector not in list')
+                    return [[0]]
 
                 if sector is True:
                     result[i][j] = sectorPopulation
