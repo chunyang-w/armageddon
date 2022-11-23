@@ -195,7 +195,7 @@ class Planet():
 
         # Replace these lines with your code to add the dedz column to
         # the result DataFrame
-        result = result.copy()
+        # result = result.copy()
         mass = result["mass"]
         velocity = result["velocity"]
         altitude = np.array(result["altitude"])
