@@ -114,7 +114,7 @@ fiducial_stdevs = {'radius': 1, 'angle': 1, 'strength': 5e6,
 
 
 def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
-                pressure=27.e3, nsamples=100, sector=True):
+                pressure=27.e3, nsamples=10, sector=True):
     """
     Perform an uncertainty analysis to calculate the risk for each affected
     UK postcode or postcode sector
@@ -171,12 +171,6 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
     postcode_sq = postcode_sq.value_counts().sort_values(ascending=False)
     prob = postcode_sq.values / nsamples
     print(np.array(postcode_sq.index))
-    risk = prob * locator.get_population_of_postcode(np.array(postcode_sq.index))
+    popu = locator.get_population_of_postcode([postcodes])[0]
+    risk = popu * prob
     return risk
-    #if sector:
-        #return pd.DataFrame({'sector': '', 'risk': 0}, index=range(1))
-    #else:
-        #return pd.DataFrame({'postcode': '', 'risk': 0}, index=range(1))
-
-# impact_risk(Planet(), means=fiducial_means, stdevs=fiducial_stdevs,
-#                 pressure=27.e3, nsamples=10, sector=False)
