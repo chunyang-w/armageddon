@@ -34,7 +34,7 @@ jobs:
       run: |
         git config --global user.email "github@linux"
         git config --global user.name "githublinux"
-        git add docs/html/index.html
+        git add docs/html
         git commit -m "update html through wrokflow"
         git remote
         
