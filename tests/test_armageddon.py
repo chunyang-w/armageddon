@@ -23,7 +23,14 @@ def planet(armageddon):
 
 @fixture(scope='module')
 def loc(armageddon):
-    return armageddon.PostcodeLocator()
+    return armageddon.PostcodeLocator(
+        os.sep.join((os.path.dirname(__file__), '..',
+                     'resources',
+                     'full_postcodes.csv')),
+        os.sep.join((os.path.dirname(__file__), '..',
+                     'resources',
+                     'population_by_postcode_sector.csv'))
+    )
 
 
 @fixture(scope='module')

@@ -5,6 +5,15 @@ import pandas as pd
 
 __all__ = ['PostcodeLocator', 'great_circle_distance', 'get_sector_code']
 
+
+def get_sector_code(code):
+    code = code[:-2]
+    code = code.replace(' ', '')
+    code = code.replace(' ', '')
+    code = code[:-1] + ' ' + code[-1]
+    return code
+
+
 def get_sector_code(code):
     code = code[:-2]
     code = code.replace(' ', '')
@@ -69,6 +78,7 @@ def great_circle_distance(latlon1, latlon2):
 class PostcodeLocator(object):
     """Class to interact with a postcode database file."""
 
+
     def __init__(self, postcode_file='resources/full_postcodes.csv',
                  census_file='resources/population_by_postcode_sector.csv',
                  norm=great_circle_distance):
@@ -115,7 +125,6 @@ class PostcodeLocator(object):
             Contains the lists of postcodes closer than the elements
             of radii to the location X.
 
-
         Examples
         --------
 
@@ -136,7 +145,6 @@ class PostcodeLocator(object):
         >>> postcode_dictionaries == ans2
         True
         """
-
         place_list = []
         selector = 'Sector_Postcode' if sector is True else 'Postcode'
         df = self.postcode_df
@@ -150,6 +158,12 @@ class PostcodeLocator(object):
                 set(df[df['Distance'] < r][selector].to_list())
             ))
         return place_list
+
+
+    def get_postcode_count(self, sec_code):
+        return self.postcode_df['Postcode'].str.contains(
+            sec_code, na=False).sum()
+
 
     def get_population_of_postcode(self, postcodes, sector=False):
         """
@@ -175,52 +189,42 @@ class PostcodeLocator(object):
         >>> locator = PostcodeLocator('resources/full_postcodes.csv', 'resources/population_by_postcode_sector.csv')
         >>> pop1 = locator.get_population_of_postcode([['SW7 2AZ', 'SW7 2BT', 'SW7 2BU', 'SW7 2DD']])
         >>> pop1
-        [[19.0, 19.0, 19.0, 19.0]]
+        [[19, 19, 19, 19]]
         >>> pop2 = locator.get_population_of_postcode([['SW7  2']], True)
         >>> pop2
-        [[2283.0]]
+        [[2283]]
         """
-        pc = np.array(postcodes)
-        m, n = pc.shape
-        result = np.zeros(pc.shape)
-
-        for i in range(m):
-            for j in range(n):
-                district, sec = pc[i][j].split()
-
-                if len(district) == 3:
-                    searchSector = district+'  '+sec[0]
+        col = 'Variable: All usual residents; measures: Value'
+        global_pc = []
+        for pc_list in postcodes:
+            nested_pc = []
+            for pc in pc_list:
+                outcode = None
+                remainder = None
+                if (len(pc) == 7):  # postcode
+                    outcode = pc[:-3].strip()
+                    remainder = pc[-3:]
+                else:  # sector code
+                    outcode = pc[:-1].strip()
+                    remainder = pc[-1]
+                sec_digit = remainder[0]
+                outcode = outcode + ' ' * (5 - len(outcode))
+                sec_code = outcode + sec_digit
+                target = self.census_df[
+                    self.census_df['geography code'] == sec_code
+                ]
+                if (target.shape[0] == 0):
+                    nested_pc.append(0)
                 else:
-                    searchSector = district+' '+sec[0]
-
-                col = 'Variable: All usual residents; measures: Value'
-                try:
-                    sectorPopulation = int(self.census_df.loc[self.census_df
-                                           ['geography']
-                                           == searchSector][col])
-                except TypeError:
-                    print('Sector not in list')
-                    return [[0]]
-
-                if sector is True:
-                    result[i][j] = sectorPopulation
-                else:
-                    if len(district) == 3:
-                        search = district+' '+sec[0]
+                    if (sector is True):
+                        nested_pc.append(target[col].values[0])
                     else:
-                        search = district+sec[0]
-
-                    count = self.postcode_df['Postcode']\
-                        .str.contains(search, na=False).sum()
-
-                    unitPopulation = sectorPopulation/float(count)
-                    result[i][j] = np.ceil(unitPopulation)
-
-        result = result.tolist()
-        return result
-locator = PostcodeLocator('resources/full_postcodes.csv', 'resources/population_by_postcode_sector.csv')
-# print(locator.get_population_of_postcode(locator.get_postcodes_by_radius((51.4981, -0.1773), [0.4e3, 0.2e3], True), True))
-print(locator.get_postcodes_by_radius((51.4981, -0.1773), [13e2]))
-
-
+                        outcode = outcode.strip()
+                        outcode = outcode + ' ' * (4 - len(outcode))
+                        sec_code = outcode + sec_digit
+                        pc_count = self.get_postcode_count(sec_code)
+                        nested_pc.append(round(
+                            target[col].values[0] / pc_count))
+            global_pc.append(nested_pc)
+        return global_pc
 

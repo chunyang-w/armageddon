@@ -1,0 +1,45 @@
+name: build docs
+
+on:
+   push:
+     branches:
+       - wenying
+
+
+jobs:
+  build_docs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout armageddon
+      uses: actions/checkout@v2
+    - name: Set up python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -e .
+        pip install -r requirements.txt
+    - name: Build docs using sphinx
+      run: |
+        sphinx-build -b latex docs .
+    - name: Compile LaTeX document
+      uses: repaction/texlive@main
+      with:
+        tex_files: |
+          armageddon.tex
+    - name: move docs to certain folder
+      run: |
+        mv armageddon.pdf docs
+    - name: Commit files
+      run: |
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add docs/armageddon.pdf
+        git commit -m "docs auto generated"
+    - name: Push files to repo
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
