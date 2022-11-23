@@ -2,15 +2,14 @@
 
 import numpy as np
 import pandas as pd
+import os
 
 __all__ = ['PostcodeLocator', 'great_circle_distance', 'get_sector_code']
 
 
 def get_sector_code(code):
     code = code[:-2]
-    code = code.replace(' ', '')
-    code = code.replace(' ', '')
-    code = code[:-1] + ' ' + code[-1]
+    code = code.replace(' ', '  ')
     return code
 
 
@@ -78,9 +77,12 @@ def great_circle_distance(latlon1, latlon2):
 class PostcodeLocator(object):
     """Class to interact with a postcode database file."""
 
-
-    def __init__(self, postcode_file='resources/full_postcodes.csv',
-                 census_file='resources/population_by_postcode_sector.csv',
+    def __init__(self, postcode_file=os.sep.join((os.path.dirname(__file__), '..',
+                                                  'resources',
+                                                  'full_postcodes.csv')),
+                 census_file=os.sep.join((os.path.dirname(__file__), '..',
+                                          'resources',
+                                          'population_by_postcode_sector.csv')),
                  norm=great_circle_distance):
         """
         Parameters
@@ -194,37 +196,33 @@ class PostcodeLocator(object):
         >>> pop2
         [[2283]]
         """
-        col = 'Variable: All usual residents; measures: Value'
-        global_pc = []
-        for pc_list in postcodes:
-            nested_pc = []
-            for pc in pc_list:
-                outcode = None
-                remainder = None
-                if (len(pc) == 7):  # postcode
-                    outcode = pc[:-3].strip()
-                    remainder = pc[-3:]
-                else:  # sector code
-                    outcode = pc[:-1].strip()
-                    remainder = pc[-1]
-                sec_digit = remainder[0]
-                outcode = outcode + ' ' * (5 - len(outcode))
-                sec_code = outcode + sec_digit
-                target = self.census_df[
-                    self.census_df['geography code'] == sec_code
-                ]
-                if (target.shape[0] == 0):
-                    nested_pc.append(0)
+        postcodes_array = np.array(postcodes)
+        print(postcodes_array)
+        if sector == True:
+            pop = np.zeros_like(postcodes_array, dtype=int)
+            for index, val in np.ndenumerate(postcodes_array):
+                if self.census_df['geography'].str.contains(val).any():
+                    pop[index] = self.census_df[self.census_df['geography']==val]\
+                        ['Variable: All usual residents; measures: Value'].values[0]
                 else:
-                    if (sector is True):
-                        nested_pc.append(target[col].values[0])
-                    else:
-                        outcode = outcode.strip()
-                        outcode = outcode + ' ' * (4 - len(outcode))
-                        sec_code = outcode + sec_digit
-                        pc_count = self.get_postcode_count(sec_code)
-                        nested_pc.append(round(
-                            target[col].values[0] / pc_count))
-            global_pc.append(nested_pc)
-        return global_pc
-
+                    pop[index] = 0
+            return pop.tolist()
+        else:
+            postcodes_valuecounts = self.postcode_df['Sector_Postcode']\
+                .value_counts()
+            vectorized_get_sector = np.vectorize(get_sector_code)
+            postcodes_array = vectorized_get_sector(postcodes_array)
+            sector_pop = np.zeros_like(postcodes_array, dtype=int)
+            num_sector = sector_pop.copy()
+            for index, val in np.ndenumerate(postcodes_array):
+                if self.census_df['geography'].str.contains(val).any():
+                    num_sector[index] = postcodes_valuecounts[val]
+                    sector_pop[index] = self.census_df[self.census_df['geography']==val]\
+                        ['Variable: All usual residents; measures: Value'].values[0]
+                else:
+                    num_sector[index] = 1
+                    sector_pop[index] = 0
+                # print(sector_pop[index])
+                # print(index)
+            pop = np.round(sector_pop / num_sector)
+            return pop.tolist()
