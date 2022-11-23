@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - wenying
+      - master
   pull_request:
     branches:
       - master
@@ -46,4 +47,4 @@ jobs:
         git config --local user.name "github-actions[bot]"
         git add docs/armageddon.pdf
         git commit -m "docs auto generated"
-        git push origin wenying
+        git push
