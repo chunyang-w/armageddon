@@ -3,7 +3,6 @@ from numpy import sin, cos, arcsin, arctan
 import numpy as np
 from scipy.stats import norm
 from armageddon.locator import PostcodeLocator
-import os
 
 
 def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
@@ -125,6 +124,7 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
         the associated risk. These should be called ``postcode`` or ``sector``,
         and ``risk``.
     """
+    locator = PostcodeLocator()
     params = list(zip(means.values(), stdevs.values()))
     postcodes = []
     for i in range(nsamples):
