@@ -9,7 +9,7 @@ __all__ = ['PostcodeLocator', 'great_circle_distance', 'get_sector_code']
 
 def get_sector_code(code):
     code = code[:-2]
-    code = code.replace(' ', '  ')
+    code = code[:-1] + ' ' + code[-1]
     return code
 
 
@@ -139,10 +139,6 @@ class PostcodeLocator(object):
             ))
         return place_list
 
-    def get_postcode_count(self, sec_code):
-        return self.postcode_df['Postcode'].str.contains(
-            sec_code, na=False).sum()
-
     def get_population_of_postcode(self, postcodes, sector=False):
         """
         Return populations of a list of postcode units or sectors.
@@ -172,33 +168,75 @@ class PostcodeLocator(object):
         >>> pop2
         [[2283.0]]
         """
-        postcodes_array = np.array(postcodes)
-        print(postcodes_array)
+        postcodes_array_2d = np.asarray(postcodes, dtype=object)
         if sector == True:
-            pop = np.zeros_like(postcodes_array, dtype=int)
-            for index, val in np.ndenumerate(postcodes_array):
-                if self.census_df['geography'].str.contains(val).any():
-                    pop[index] = self.census_df[self.census_df['geography']==val]\
-                        ['Variable: All usual residents; measures: Value'].values[0]
-                else:
-                    pop[index] = 0
-            return pop.tolist()
+            population = np.zeros_like(postcodes_array_2d)
+            for pop_index, postcodes_array_1d in enumerate(postcodes_array_2d):
+                temp_pop = np.array([], dtype=int)
+                for val in postcodes_array_1d:
+                    if self.census_df['geography'].eq(val).any():
+                        temp_pop = np.append(temp_pop, self.census_df[self.census_df['geography']==val]['Variable: All usual residents; measures: Value'].values[0])
+                    else:
+                        temp_pop = np.append(temp_pop, 0)
+                population[pop_index] = temp_pop.tolist()
+            return population.tolist()
         else:
-            postcodes_valuecounts = self.postcode_df['Sector_Postcode']\
-                .value_counts()
-            vectorized_get_sector = np.vectorize(get_sector_code)
-            postcodes_array = vectorized_get_sector(postcodes_array)
-            sector_pop = np.zeros_like(postcodes_array, dtype=int)
-            num_sector = sector_pop.copy()
-            for index, val in np.ndenumerate(postcodes_array):
-                if self.census_df['geography'].str.contains(val).any():
-                    num_sector[index] = postcodes_valuecounts[val]
-                    sector_pop[index] = self.census_df[self.census_df['geography']==val]\
-                        ['Variable: All usual residents; measures: Value'].values[0]
-                else:
-                    num_sector[index] = 1
-                    sector_pop[index] = 0
-                print(sector_pop[index])
-                print(index)
-            pop = np.round(sector_pop / num_sector)
-            return pop.tolist()
+            postcodes_valuecounts = self.postcode_df['Sector_Postcode'].value_counts().sort_values()
+            population = np.zeros_like(postcodes_array_2d)
+            vectorized_sector_encoder = np.vectorize(get_sector_code)
+            for i, v in enumerate(postcodes_array_2d):
+                postcodes_array_2d[i] = vectorized_sector_encoder(v)
+            for pop_index, postcodes_array_1d in enumerate(postcodes_array_2d):
+                temp_pop = np.array([], dtype=int)
+                temp_sector = np.array([], dtype=int)
+                for val in postcodes_array_1d:
+                    if self.census_df['geography'].eq(val).any():
+                        temp_pop = np.append(temp_pop, self.census_df[self.census_df['geography']==val]['Variable: All usual residents; measures: Value'].values[0])
+                        temp_sector = np.append(temp_sector, postcodes_valuecounts[val])
+                    else:
+                        temp_pop = np.append(temp_pop, 0)
+                        temp_sector = np.append(temp_sector, 1)
+                temp_pop = np.round(temp_pop / temp_sector).astype(int).tolist()
+                population[pop_index] = temp_pop
+            return population.tolist()
+
+
+
+
+
+
+
+        
+        # else:
+        #     postcodes_valuecounts = self.postcode_df['Sector_Postcode']\
+        #         .value_counts()
+        #     for index, val in np.ndenumerate(postcodes_array):
+        #         postcodes_array[index] = get_sector_code(val)
+        #     sector_pop = np.zeros_like(postcodes_array, dtype=int)
+        #     num_sector = sector_pop.copy()
+        #     for index, val in np.ndenumerate(postcodes_array):
+        #         if self.census_df['geography'].str.contains(val).any():
+        #             num_sector[index] = postcodes_valuecounts[val]
+        #             sector_pop[index] = self.census_df[self.census_df['geography']==val]\
+        #                 ['Variable: All usual residents; measures: Value'].values[0]
+        #         else:
+        #             num_sector[index] = 1
+        #             sector_pop[index] = 0
+        #     pop = np.round(sector_pop / num_sector)
+        #     return pop.tolist()
+
+# locator = PostcodeLocator()
+# print(locator.get_population_of_postcode([['SW7  2'], ['SW7  2', 'SW7  2', 'SW7  2']], sector=True))
+
+
+
+# postcodes_array = np.array(postcodes)
+        # if sector == True:
+        #     pop = np.zeros_like(postcodes_array, dtype=int)
+        #     for index, val in np.ndenumerate(postcodes_array):
+        #         if self.census_df['geography'].str.contains(val).any():
+        #             pop[index] = self.census_df[self.census_df['geography']==val]\
+        #                 ['Variable: All usual residents; measures: Value'].values[0]
+        #         else:
+        #             pop[index] = 0
+        #     return pop.tolist()
