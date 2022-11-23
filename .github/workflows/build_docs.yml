@@ -30,7 +30,7 @@ jobs:
 
     - name: Install texlive
       run: |
-        sudo apt install texlive-full
+        sudo apt install texlive
         sudo apt-get install -y latexmk
         sudo apt-get install -y texlive-latex-extra
 
