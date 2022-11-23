@@ -6,3 +6,11 @@ damage_map.html
 __pycache__
 .ipynb_checkpoints/
 .pytest_cache/
+
+resources/full_postcodes.csv
+resources/population_by_postcode_sector.csv
+
+resources/.DS_Store
+
+armageddon/test.ipynb
+*.DS_Store
