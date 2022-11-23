@@ -44,11 +44,13 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
     --------
 
     >>> import armageddon
-    >>> outcome = {'burst_altitude': 8e3, 'burst_energy': 7e3,
-                   'burst_distance': 90e3, 'burst_peak_dedz': 1e3,
+    >>> outcome = {'burst_altitude': 8e3, 'burst_energy': 7e3,\
+                   'burst_distance': 90e3, 'burst_peak_dedz': 1e3,\
                    'outcome': 'Airburst'}
-    >>> armageddon.damage_zones(outcome, 52.79, -2.95, 135,
+    >>> armageddon.damage_zones(outcome, 52.79, -2.95, 135,\
                                 pressures=[1e3, 3.5e3, 27e3, 43e3])
+    (51.98371949678459, -2.746093100475223, [51002.04019315775,\
+ 25706.014907978413, 7196.208816950395, 3803.4573273729134])
     """
     r_h = outcome['burst_distance']
     Ek = outcome['burst_energy']
@@ -141,7 +143,7 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
         )
         damcode = locator.get_postcodes_by_radius(
             (blat, blon), [damrad], sector)[0]
-        print('blast data', blat, blon, damrad)
+        # print('blast data', blat, blon, damrad)
         postcodes = postcodes + damcode
     postcode_sq = pd.Series(data=np.array(postcodes))
     postcode_sq = postcode_sq.value_counts().sort_values(ascending=False)
