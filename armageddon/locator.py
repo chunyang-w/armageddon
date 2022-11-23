@@ -10,7 +10,7 @@ def get_sector_code(code):
     code = code[:-2]
     code = code.replace(' ', '')
     code = code.replace(' ', '')
-    code = code[:-1] + ' ' + code[-1]
+    code = code[:-1] + ' ' * (4 - len(code[:-1])) + code[-1]
     return code
 
 
@@ -137,6 +137,9 @@ class PostcodeLocator(object):
         return place_list
 
     def get_postcode_count(self, sec_code):
+        temp = self.postcode_df['Sector_Postcode'] == sec_code
+        print(temp.sum())
+        return 
         return self.postcode_df['Postcode'].str.contains(
             sec_code, na=False).sum()
 
