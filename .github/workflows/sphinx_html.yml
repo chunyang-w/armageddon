@@ -1,0 +1,45 @@
+name: sphinx-html
+
+on:
+   # Trigger the workflow on push or pull request,
+   # but only for the master branch
+   push:
+     branches:
+       - main
+   pull_request:
+     branches:
+       - main
+
+jobs:
+  sphinx:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.9
+
+
+    - name: conda environment
+      run: |
+        pip install sphinx
+    - name: Build sphinx documentation
+      run: |
+        sphinx-build -b html docs docs/html
+    - name: update repo
+      run: |
+        git config --global user.email "github@linux"
+        git config --global user.name "githublinux"
+        git add docs/html/index.html
+        git commit -m "update html through wrokflow"
+        git remote
+        
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
