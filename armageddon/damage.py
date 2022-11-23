@@ -71,7 +71,7 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
 
     sin_blat = ((sin(lat) * cos(r_h / Rp)) +
                 (cos(lat) * sin(r_h / Rp) * cos(bearing)))
-                
+              
     blat = arcsin(sin_blat)
     blat = float(np.rad2deg(blat))
 
