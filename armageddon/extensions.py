@@ -175,11 +175,11 @@ def plot_against(radius, strength, density=3300, angle=18.3, velocity=19200,
     plt.legend()
     plt.show()
 
-data2 = pd.read_csv('./resources/ChelyabinskEnergyAltitude.csv')
-data2.columns = ['h', 'energy']
-data2['h'] = data2['h']*1000
-data2['energy'] = data2['energy']
-range_of_interest = [max(data2['h']),min(data2['h'])]
+# data2 = pd.read_csv('./resources/ChelyabinskEnergyAltitude.csv')
+# data2.columns = ['h', 'energy']
+# data2['h'] = data2['h']*1000
+# data2['energy'] = data2['energy']
+# range_of_interest = [max(data2['h']),min(data2['h'])]
 def getfunctionvalue(planet_instance, radius, velocity, density, strength,
                      angle, target_peak, target_alti, radians=False):
     planet_instance.burstpoint = -1

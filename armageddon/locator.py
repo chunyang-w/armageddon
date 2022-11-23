@@ -9,7 +9,7 @@ __all__ = ['PostcodeLocator', 'great_circle_distance', 'get_sector_code']
 
 def get_sector_code(code):
     code = code[:-2]
-    code = code.replace(' ', '  ')
+    code = code[:-1] + ' ' + code[-1]
     return code
 
 
@@ -173,7 +173,7 @@ class PostcodeLocator(object):
         [[2283.0]]
         """
         postcodes_array = np.array(postcodes)
-        print(postcodes_array)
+        # print(postcodes_array)
         if sector == True:
             pop = np.zeros_like(postcodes_array, dtype=int)
             for index, val in np.ndenumerate(postcodes_array):
@@ -186,8 +186,9 @@ class PostcodeLocator(object):
         else:
             postcodes_valuecounts = self.postcode_df['Sector_Postcode']\
                 .value_counts()
-            vectorized_get_sector = np.vectorize(get_sector_code)
-            postcodes_array = vectorized_get_sector(postcodes_array)
+            for index, val in np.ndenumerate(postcodes_array):
+                # print(val)
+                postcodes_array[index] = get_sector_code(val)
             sector_pop = np.zeros_like(postcodes_array, dtype=int)
             num_sector = sector_pop.copy()
             for index, val in np.ndenumerate(postcodes_array):
@@ -198,7 +199,7 @@ class PostcodeLocator(object):
                 else:
                     num_sector[index] = 1
                     sector_pop[index] = 0
-                print(sector_pop[index])
-                print(index)
+                # print(sector_pop[index])
+                # print(index)
             pop = np.round(sector_pop / num_sector)
             return pop.tolist()
