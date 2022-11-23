@@ -71,7 +71,7 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
 
     sin_blat = ((sin(lat) * cos(r_h / Rp)) +
                 (cos(lat) * sin(r_h / Rp) * cos(bearing)))
-                
+              
     blat = arcsin(sin_blat)
     blat = float(np.rad2deg(blat))
 
@@ -160,17 +160,24 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
         result = planet.solve_atmospheric_entry(
             radius, velocity, density, strength, angle
         )
+        result = planet.calculate_energy(result)
         analysis = planet.analyse_outcome(result)
         blat, blon, damrad = damage_zones(
             analysis, lat, lon, bearing, pressure
         )
         damcode = locator.get_postcodes_by_radius(
+            # [51.4981, -0.1772], [0.10e4], sector)[0]
             (blat, blon), [damrad], sector)[0]
+        print('blast data', blat, blon, damrad)
         postcodes = postcodes + damcode
     postcode_sq = pd.Series(data=np.array(postcodes))
     postcode_sq = postcode_sq.value_counts().sort_values(ascending=False)
     prob = postcode_sq.values / nsamples
-    print(np.array(postcode_sq.index))
-    popu = locator.get_population_of_postcode([postcodes])[0]
+    popu = locator.get_population_of_postcode([postcode_sq.index], sector)[0]
     risk = popu * prob
-    return risk
+    col = 'postcode sector' if sector is True else 'postcode'
+    df = pd.DataFrame({
+        col: postcode_sq.index,
+        'risk': risk
+    })
+    return df
