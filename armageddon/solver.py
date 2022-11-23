@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-
+__all__ = ['Planet']
 class Planet():
     """
     The class called Planet is initialised with constants appropriate

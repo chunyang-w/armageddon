@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 __all__ = ['PostcodeLocator', 'great_circle_distance', 'get_sector_code']
-##
+
 
 def get_sector_code(code):
     code = code[:-2]

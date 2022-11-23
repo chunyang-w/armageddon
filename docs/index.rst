@@ -41,6 +41,7 @@ governed by a coupled set of ordinary differential equations:
 .. math::
    :nowrap:
 
+   \begin{math}
    \begin{aligned} 
    \frac{dv}{dt} & = \frac{-C_D\rho_a A v^2}{2 m} + g \sin \theta \\
    \frac{dm}{dt} & = \frac{-C_H\rho_a A v^3}{2 Q} \\
@@ -48,6 +49,7 @@ governed by a coupled set of ordinary differential equations:
    \frac{dz}{dt} & = -v\sin\theta \\
    \frac{dx}{dt} & = \frac{v\cos\theta}{1 + z/R_P}
    \end{aligned}
+   \end{math}
 
 In these equations, :math:`v`, :math:`m`, and :math:`A` are the asteroid
 speed (along trajectory), mass and cross-sectional area, respectively.
@@ -145,6 +147,18 @@ You should expand this documentation to include explanatory text for all compone
 Function API
 ============
 
-.. automodule:: armageddon
-  :members:
-  :imported-members:
+.. automodule:: locator
+  :members: PostcodeLocator, great_circle_distance, get_sector_code
+  :imported-members: PostcodeLocator, great_circle_distance, get_sector_code
+
+.. automodule:: solver
+  :members: Planet
+  :imported-members: Planet
+
+.. automodule:: damage
+  :members: damage_zones, impact_risk
+  :imported-members: damage_zones, impact_risk
+
+.. automodule:: mapping
+  :members: plot_circle
+  :imported-members: plot_circle
