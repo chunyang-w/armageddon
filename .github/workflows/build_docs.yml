@@ -39,10 +39,6 @@ jobs:
         sphinx-build -b latex docs .
         pdflatex --output-directory docs armageddon.tex
         cd ../..
-  
-    - name: move docs to certain folder
-      run: |
-        mv armageddon.pdf docs
 
     - name: commit changes and push
       run: |
