@@ -6,16 +6,6 @@ from armageddon.locator import PostcodeLocator
 import os
 
 
-locator = PostcodeLocator(
-        os.sep.join((os.path.dirname(__file__), '..',
-                     'resources',
-                     'full_postcodes.csv')),
-        os.sep.join((os.path.dirname(__file__), '..',
-                     'resources',
-                     'population_by_postcode_sector.csv'))
-    )
-
-
 def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
     """
     Calculate the latitude and longitude of the surface zero location and the
@@ -86,22 +76,6 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
 
     damrad = np.sqrt(pre_sol).tolist()
 
-    # if map == True:
-    #     for rad_index in range(len(damrad)):
-    #         if rad_index == 0:
-    #             map = mapping.plot_circle(
-    #                 blat, blon,
-    #                 damrad[rad_index],
-    #                 map=None
-    #             )
-    #         else:
-    #             map = mapping.plot_circle(
-    #                 blat, blon,
-    #                 damrad[rad_index],
-    #                 map
-    #             )
-    #     return blat, blon, damrad, map
-
     return blat, blon, damrad
 
 
@@ -166,7 +140,6 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
             analysis, lat, lon, bearing, pressure
         )
         damcode = locator.get_postcodes_by_radius(
-            # [51.4981, -0.1772], [0.10e4], sector)[0]
             (blat, blon), [damrad], sector)[0]
         print('blast data', blat, blon, damrad)
         postcodes = postcodes + damcode

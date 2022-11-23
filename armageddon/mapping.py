@@ -36,3 +36,20 @@ def plot_circle(lat, lon, radius, map=None, **kwargs):
                   fillOpacity=0.6, **kwargs).add_to(map)
 
     return map
+
+
+def damage_map(blat, blon, damrad):
+    for rad_index in range(len(damrad)):
+        if rad_index == 0:
+            map = plot_circle(
+                blat, blon,
+                damrad[rad_index],
+                map=None
+            )
+        else:
+            map = plot_circle(
+                blat, blon,
+                damrad[rad_index],
+                map
+            )
+    return map
