@@ -145,6 +145,22 @@ You should expand this documentation to include explanatory text for all compone
 Function API
 ============
 
-.. automodule:: armageddon
-  :members:
-  :imported-members:
+.. automodule:: locator
+  :members: PostcodeLocator, great_circle_distance, get_sector_code
+  :imported-members: PostcodeLocator, great_circle_distance, get_sector_code
+
+.. automodule:: solver
+  :members: Planet
+  :imported-members: Planet
+
+.. automodule:: damage
+  :members: damage_zones, impact_risk
+  :imported-members: damage_zones, impact_risk
+
+.. automodule:: mapping
+  :members: plot_circle
+  :imported-members: plot_circle
+
+.. automodule:: extensions
+  :members: findstrengthradius, plot_against, getfunctionvalue, searchstrength
+  :imported-members: findstrengthradius, plot_against, getfunctionvalue, searchstrength
