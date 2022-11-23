@@ -80,9 +80,10 @@ class Planet():
         try:
             # set function to define atmoshperic density
             if atmos_func == 'exponential':
-                self.rhoa = lambda x: rho0*np.exp(-x/H) 
+                self.rhoa = lambda x: rho0 * np.exp(-x / H)
             elif atmos_func == 'tabular':
-                self.rhoa = self.create_tabular_density()
+                self.rhoa = self.create_tabular_density(
+                                filename=atmos_filename)
             elif atmos_func == 'constant':
                 self.rhoa = lambda x: rho0
             else:
@@ -96,7 +97,7 @@ class Planet():
 
     def solve_atmospheric_entry(
             self, radius, velocity, density, strength, angle,
-            init_altitude=100e3, dt=0.05, radians=False, backend="RK4"):
+            init_altitude=100e3, dt=0.05, radians=False, backend="FE"):
         """
         Solve the system of differential equations for a given impact scenario
 
@@ -130,7 +131,7 @@ class Planet():
             Whether angles should be given in degrees or radians. Default=False
             Angles returned in the dataframe will have the same units as the
             input
-        
+
         backend : str, optional
             Which solving method to use. Default='FE'
 
@@ -142,9 +143,9 @@ class Planet():
             'velocity', 'mass', 'angle', 'altitude',
             'distance', 'radius', 'time'
         """
-    
+
         # Enter your code here to solve the differential equations
-        if radians == False:
+        if not radians:
             angle = angle/180 * np.pi
         self.strength = strength
         self.density = density
@@ -152,7 +153,7 @@ class Planet():
         if backend == "FE":
             solver = self.solve_atmospheric_entry_FE
         elif backend == "RK4":
-            solver =self.solve_atmospheric_entry_RK4
+            solver = self.solve_atmospheric_entry_RK4
         else:
             try:
                 raise NotImplementedError(
@@ -163,7 +164,7 @@ class Planet():
                 print("Falling back to FE for now")
                 solver = self.solve_atmospheric_entry_FE
         solver(radius, velocity, angle, init_altitude, dt)
-        if radians == False:
+        if not radians:
             all_angle = [i/np.pi * 180 for i in self.angle]
         else:
             all_angle = self.angle
@@ -198,8 +199,9 @@ class Planet():
         mass = result["mass"]
         velocity = result["velocity"]
         altitude = np.array(result["altitude"])
-        dezd = np.array(0.5 * mass * velocity**2)
-        temp = (dezd[1:] - dezd[:-1])/(altitude[:-1] - altitude[1:])
+        dedz = np.array(0.5 * mass * velocity**2)
+        temp = (dedz[1:] - dedz[:-1])/(altitude[:-1] - altitude[1:])
+        temp = temp/(4.184*10**9)
         temp = np.insert(temp, 0, 0)
         result.insert(len(result.columns),
                       'dedz', -temp)
@@ -226,24 +228,29 @@ class Planet():
                 ``burst_peak_dedz``, ``burst_altitude``,
                 ``burst_distance``, ``burst_energy``
         """
-        result = self.calculate_energy(result)
         burstidx = result['dedz'].idxmax()
-        initial_energy = 0.5 * result["mass"][0] * result["velocity"][0]**2
-        burstenergy = 0.5 * result["mass"][burstidx] * result["velocity"][burstidx]**2
+        initial_energy = (0.5 * result["mass"][0]
+                          * result["velocity"][0]**2 / (4.184*10**12))
+        burstenergy = (0.5 * result["mass"][burstidx]
+                       * result["velocity"][burstidx]**2 / (4.184*10**12))
         outcome = "Airburst"
         if burstidx == len(result) - 1:
             outcome = "Cratering"
             burstenergy = max(burstenergy, initial_energy - burstenergy)
+            burst_altitude = 0
         else:
             burstenergy = initial_energy - burstenergy
+            burst_altitude = result["altitude"][burstidx]
         outcome = {'outcome': outcome,
                    'burst_peak_dedz': result['dedz'][burstidx],
-                   'burst_altitude': result["altitude"][burstidx],
+                   'burst_altitude': burst_altitude,
                    'burst_distance': result["distance"][burstidx],
                    'burst_energy': burstenergy}
         return outcome
 
-    def create_tabular_density(self, filename="./resources/AltitudeDensityTable.csv"):
+    def create_tabular_density(
+            self,
+            filename="./resources/AltitudeDensityTable.csv"):
         """
         Create a function given altitude return the density of atomosphere
         using tabulated value
@@ -266,6 +273,7 @@ class Planet():
             temp = i.split()
             X.append(eval(temp[0]))
             Y.append(eval(temp[1]))
+
         def tabular_density(x):
             if x > X[-1]:
                 return 0
@@ -281,7 +289,8 @@ class Planet():
             self, radius, velocity, angle,
             init_altitude, dt):
         """
-        Solve the system of differential equations for a given impact scenario using RK4 method
+        Solve the system of differential equations for a given impact scenario
+        using RK4 method
 
         Parameters
         ----------
@@ -312,12 +321,12 @@ class Planet():
         self.mass = [4/3 * np.pi * radius**3 * self.density]
         self.angle = [angle]
         self.altitude = [init_altitude]
-        self.distance = [0]   
+        self.distance = [0]
         self.radius = [radius]
         timestep = dt
         self.alltimestep = [0]
         while True:
-            ctheta, cr, cz, cv, cm, cx = self.RK4_helper(dt)  
+            ctheta, cr, cz, cv, cm, cx = self.RK4_helper(dt)
             self.velocity.append(cv + self.velocity[-1])
             self.mass.append(cm + self.mass[-1])
             self.altitude.append(cz + self.altitude[-1])
@@ -342,16 +351,17 @@ class Planet():
         change : ndarray
             A numpy array containing the change of each variable.
             Includes the following variables:
-            'angle', 'radius', 'altitude', 
+            'angle', 'radius', 'altitude',
             'velocity', 'mass', 'distance'
         """
-        variables = np.array([self.angle[-1], self.radius[-1], self.altitude[-1],
-                              self.velocity[-1], self.mass[-1], self.distance[-1]])
+        variables = np.array([self.angle[-1], self.radius[-1],
+                              self.altitude[-1], self.velocity[-1],
+                              self.mass[-1], self.distance[-1]])
         k1 = self.calculator_rk4(variables)
         k2 = self.calculator_rk4(variables + 0.5 * timestep * k1)
         k3 = self.calculator_rk4(variables + 0.5 * timestep * k2)
         k4 = self.calculator_rk4(variables + timestep * k3)
-        change = (k1 + 2*k2 + 2*k3 +k4)*timestep/6
+        change = (k1 + 2 * k2 + 2 * k3 + k4) * timestep / 6
         return change
 
     def calculator_rk4(self, variables):
@@ -368,7 +378,7 @@ class Planet():
         result : ndarray
             A numpy array containing the change of each variable.
             Includes the following variables:
-            'angle', 'radius', 'altitude', 
+            'angle', 'radius', 'altitude',
             'velocity', 'mass', 'distance'
         """
         angle, radius, altitude, velocity, mass, _ = variables
@@ -376,10 +386,11 @@ class Planet():
         sin_theta = np.sin(angle)
         area = np.pi * radius**2
         rhoa = self.rhoa(altitude)
-        rhoAv =  rhoa * area * velocity
-        dvdt = -self.Cd * rhoAv * velocity /(2 * mass) + self.g * sin_theta
-        dmdt = -self.Ch * rhoAv * velocity**2 /(2 * self.Q)
-        dthetadt = (-self.Cl * rhoAv /(2 * mass) + self.g * cos_theta / velocity 
+        rhoAv = rhoa * area * velocity
+        dvdt = -self.Cd * rhoAv * velocity / (2 * mass) + self.g * sin_theta
+        dmdt = -self.Ch * rhoAv * velocity**2 / (2 * self.Q)
+        dthetadt = (-self.Cl * rhoAv / (2 * mass)
+                    + self.g * cos_theta / velocity
                     - velocity * cos_theta / (self.Rp + altitude))
         dzdt = -velocity * sin_theta
         dxdt = velocity * cos_theta / (1 + altitude / self.Rp)
@@ -422,13 +433,13 @@ class Planet():
         -------
         None
         """
-    
+
         # Enter your code here to solve the differential equations
         self.velocity = [velocity]
         self.mass = [4/3 * np.pi * radius**3 * self.density]
         self.angle = [angle]
         self.altitude = [init_altitude]
-        self.distance = [0]   
+        self.distance = [0]
         self.radius = [radius]
         timestep = dt
         self.alltimestep = [0]
@@ -437,19 +448,24 @@ class Planet():
             sin_theta = np.sin(self.angle[-1])
             area = np.pi * self.radius[-1]**2
             rhoa = self.rhoa(self.altitude[-1])
-            rhoAv =  rhoa * area * self.velocity[-1]
-            dvdt = -self.Cd * rhoAv * self.velocity[-1] /(2*self.mass[-1]) + self.g * sin_theta
-            dmdt = -self.Ch * rhoAv * self.velocity[-1]**2 /(2*self.Q   )
-            dthetadt = (-self.Cl * rhoAv /(2*self.mass[-1]) + self.g * cos_theta / self.velocity[-1] 
-                        - self.velocity[-1] * cos_theta / (self.Rp + self.altitude[-1]))
+            rhoAv = rhoa * area * self.velocity[-1]
+            dvdt = (-self.Cd * rhoAv * self.velocity[-1] / (2 * self.mass[-1])
+                    + self.g * sin_theta)
+            dmdt = -self.Ch * rhoAv * self.velocity[-1]**2 / (2 * self.Q)
+            dthetadt = (-self.Cl * rhoAv / (2 * self.mass[-1])
+                        + self.g * cos_theta / self.velocity[-1]
+                        - self.velocity[-1] * cos_theta
+                        / (self.Rp + self.altitude[-1]))
             dzdt = -self.velocity[-1] * sin_theta
-            dxdt = self.velocity[-1] * cos_theta / (1 + self.altitude[-1] / self.Rp)
+            dxdt = (self.velocity[-1] * cos_theta
+                    / (1 + self.altitude[-1] / self.Rp))
             ram = self.rhoa(self.altitude[-1]) * self.velocity[-1]**2
             drdt = 0
             if ram > self.strength:
                 if self.burstpoint == -1:
                     self.burstpoint = len(self.distance)
-                drdt = (7 * rhoa * self.alpha/2/self.density)**0.5 * self.velocity[-1]
+                drdt = ((7 * rhoa * self.alpha/2/self.density)**0.5
+                        * self.velocity[-1])
             self.velocity.append(dvdt * timestep + self.velocity[-1])
             self.mass.append(dmdt * timestep + self.mass[-1])
             self.altitude.append(dzdt * timestep + self.altitude[-1])
