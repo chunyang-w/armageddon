@@ -248,18 +248,50 @@ class Planet():
                    'burst_energy': burstenergy}
         return outcome
 
-    def create_tabular_density(
-            self,
-            filename="./resources/AltitudeDensityTable.csv"):
+#     def create_tabular_density(
+#             self,
+#             filename="./resources/AltitudeDensityTable.csv"):
+#         """
+#         Create a function given altitude return the density of atomosphere
+#         using tabulated value
+
+#         Parameters
+#         ----------
+#         filename : str, optional
+#             Path to the tabular. default="./resources/AltitudeDensityTable.csv"
+
+#         Returns
+#         -------
+#         tabular_density : function
+#             A function that takes altitude as input and return the density of
+#             atomosphere density at given altitude.
+#         """
+#         X = []
+#         Y = []
+#         data = pd.read_csv(filename)
+#         for i in data[data.keys()[0]]:
+#             temp = i.split()
+#             X.append(eval(temp[0]))
+#             Y.append(eval(temp[1]))
+
+#         def tabular_density(x):
+#             if x > X[-1]:
+#                 return 0
+#             for i in range(len(X)):
+#                 if X[i] >= x:
+#                     break
+#             pressure = (x - X[i-1])/(X[i] - X[i-1]) * (Y[i] - Y[i-1]) + Y[i-1]
+
+#             return pressure
+#         return tabular_density
+    def create_tabular_density(self, atmos_filename):
         """
         Create a function given altitude return the density of atomosphere
         using tabulated value
-
         Parameters
         ----------
         filename : str, optional
             Path to the tabular. default="./resources/AltitudeDensityTable.csv"
-
         Returns
         -------
         tabular_density : function
@@ -268,23 +300,21 @@ class Planet():
         """
         X = []
         Y = []
-        data = pd.read_csv(filename)
+        data = pd.read_csv(atmos_filename)
         for i in data[data.keys()[0]]:
             temp = i.split()
             X.append(eval(temp[0]))
             Y.append(eval(temp[1]))
 
         def tabular_density(x):
-            if x > X[-1]:
-                return 0
-            for i in range(len(X)):
-                if X[i] >= x:
-                    break
-            pressure = (x - X[i-1])/(X[i] - X[i-1]) * (Y[i] - Y[i-1]) + Y[i-1]
+
+            pressure = 1.225 - 9.910220744570666e-05*x + 1.0633480000486046e-09*x ** 2 + 4.098166536722918e-14*x**3+1.0285099346022191e-17*x**4 - 1.045342967336349e-21*x**5 + 4.396108172607025e-26 * \
+                x**6 - 1.0712304649951357e-30*x**7 + 1.657059541531033e-35*x**8 - 1.6597297898210513e-40*x**9 + \
+                1.0474179820376901e-45*x**10 - 3.7975400341113775e-51 * \
+                x**11 + 6.044604125297617e-57*x**12
 
             return pressure
         return tabular_density
-
     def solve_atmospheric_entry_RK4(
             self, radius, velocity, angle,
             init_altitude, dt):
@@ -334,7 +364,9 @@ class Planet():
             self.distance.append(cx + self.distance[-1])
             self.radius.append(cr + self.radius[-1])
             self.alltimestep.append(timestep + self.alltimestep[-1])
-            if self.altitude[-1] <= 0 or self.mass[-1] <= 0:
+            if (self.altitude[-1] <= 0 or self.mass[-1] <= 0 or
+                self.radius[-1] <= 0 or self.velocity[-1] <= 0 or
+                self.altitude[-1] >= init_altitude):
                 break
 
     def RK4_helper(self, timestep):
@@ -473,5 +505,7 @@ class Planet():
             self.distance.append(dxdt * timestep + self.distance[-1])
             self.radius.append(drdt * timestep + self.radius[-1])
             self.alltimestep.append(timestep + self.alltimestep[-1])
-            if self.altitude[-1] <= 0 or self.mass[-1] <= 0:
+            if (self.altitude[-1] <= 0 or self.mass[-1] <= 0 or
+                self.radius[-1] <= 0 or self.velocity[-1] <= 0 or
+                self.altitude[-1] >= init_altitude):
                 break

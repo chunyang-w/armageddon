@@ -2,14 +2,11 @@ from .solver import Planet
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy.interpolate import lagrange
-from numpy.polynomial.polynomial import Polynomial
-
 
 
 def findstrengthradius(
         density=3300, angle=18.3, velocity=19200, init_altitude=1e5,
-        dt = 0.05, data_file='./resources/ChelyabinskEnergyAltitude.csv',
+        dt=0.05, data_file='./resources/ChelyabinskEnergyAltitude.csv',
         backend="FE", radians=False):
     """
         Find the optimal radius and strength of the input dataset that
@@ -34,7 +31,7 @@ def findstrengthradius(
 
         dt : float, optional
             The output timestep, in s
-        
+
         data_file: str, optional
             file contains the data of interest
 
@@ -76,14 +73,18 @@ def findstrengthradius(
     left = radiusrange[0]
     tao = (5**0.5 - 1) / 2
     x1 = left + (1 - tao) * (right - left)
-    beststrength, f1 = searchstrength(planet_instance, x1, velocity, density,
-                                      angle, target_peak, target_alti, strengthrange,
-                                      tol, init_altitude, dt, backend, radians=radians)
+    beststrength, f1 = searchstrength(planet_instance, x1, velocity,
+                                      density, angle, target_peak,
+                                      target_alti, strengthrange,
+                                      tol, init_altitude, dt, backend,
+                                      radians=radians)
     x2 = left + tao * (right - left)
-    beststrength, f2 = searchstrength(planet_instance, x2, velocity, density,
-                                      angle, target_peak, target_alti, strengthrange,
-                                      tol, init_altitude, dt, backend, radians=radians)
-                                
+    beststrength, f2 = searchstrength(planet_instance, x2, velocity,
+                                      density, angle, target_peak,
+                                      target_alti, strengthrange,
+                                      tol, init_altitude, dt, backend,
+                                      radians=radians)
+
     while right - left > tol:
         print(right, left)
         print("f:", f1, f2)
@@ -91,20 +92,24 @@ def findstrengthradius(
         print()
         if f1 > f2:
             left = x1
-            x1 = x2  
+            x1 = x2
             f1 = f2
             x2 = left + tao * (right - left)
-            beststrength, f2 = searchstrength(planet_instance, x2, velocity, density,
-                                              angle, target_peak, target_alti, strengthrange,
-                                              tol, init_altitude, dt, backend, radians=radians)
+            beststrength, f2 = searchstrength(planet_instance, x2, velocity,
+                                              density, angle, target_peak,
+                                              target_alti, strengthrange,
+                                              tol, init_altitude, dt, backend,
+                                              radians=radians)
         else:
             right = x2
             x2 = x1
             f2 = f1
             x1 = left + (1 - tao) * (right - left)
-            beststrength, f1 = searchstrength(planet_instance, x1, velocity, density,
-                                              angle, target_peak, target_alti, strengthrange,
-                                              tol, init_altitude, dt, backend, radians=radians)
+            beststrength, f1 = searchstrength(planet_instance, x1, velocity,
+                                              density, angle, target_peak,
+                                              target_alti, strengthrange,
+                                              tol, init_altitude, dt, backend,
+                                              radians=radians)
     print(x2, f2, beststrength)
     best_radius = x2
     minerror = f2
@@ -112,7 +117,7 @@ def findstrengthradius(
 
 
 def plot_against(radius, strength, density=3300, angle=18.3, velocity=19200,
-                 init_altitude = 1e5, dt=0.05, backend='FE',
+                 init_altitude=1e5, dt=0.05, backend='FE',
                  data_file='./resources/ChelyabinskEnergyAltitude.csv',
                  radians=False):
     """
@@ -126,7 +131,7 @@ def plot_against(radius, strength, density=3300, angle=18.3, velocity=19200,
 
         strength: float
             The strength of the asteroid in N/m^2
-    
+
         density : float
             The density of the asteroid in kg/m^3
 
@@ -143,7 +148,7 @@ def plot_against(radius, strength, density=3300, angle=18.3, velocity=19200,
 
         dt : float, optional
             The output timestep, in s
-        
+
         data_file: str, optional
             file contains the data of interest
 
@@ -151,7 +156,7 @@ def plot_against(radius, strength, density=3300, angle=18.3, velocity=19200,
             Whether angles should be given in degrees or radians. Default=False
             Angles returned in the dataframe will have the same units as the
             input
-        
+
         backend : str, optional
             Which solving method to use. Default='FE'
 
@@ -164,11 +169,10 @@ def plot_against(radius, strength, density=3300, angle=18.3, velocity=19200,
     data2['h'] = data2['h'] * 1000
     data2['energy'] = data2['energy']
     planet_instance = Planet()
-    simresult = planet_instance.solve_atmospheric_entry(radius, velocity,
-                                                        density, strength, angle,
-                                                        init_altitude=init_altitude,
-                                                        dt=dt, radians=radians,
-                                                        backend=backend)
+    simresult = planet_instance.solve_atmospheric_entry(
+        radius, velocity, density, strength, angle,
+        init_altitude=init_altitude,
+        dt=dt, radians=radians, backend=backend)
     energy = planet_instance.calculate_energy(simresult)
     range_of_interest = [max(data2['h']), min(data2['h'])]
     temp_energy = energy.loc[energy['altitude'] <= range_of_interest[0]]
@@ -188,8 +192,8 @@ def getfunctionvalue(planet_instance, radius, velocity, density, strength,
                      angle, target_peak, target_alti, init_altitude, dt,
                      backend, radians=False):
     """
-        Calculate peak dedz, burst altitude and distance between burst point and
-        true data
+        Calculate peak dedz, burst altitude and distance between
+        burst point and true data
 
         Parameters
         ----------
@@ -215,7 +219,7 @@ def getfunctionvalue(planet_instance, radius, velocity, density, strength,
 
         target_peak: float
             The peak dedz value of the true data
-        
+
         target_alti: float
             The altitude of the peak dedz of the true data
 
@@ -229,7 +233,7 @@ def getfunctionvalue(planet_instance, radius, velocity, density, strength,
             Whether angles should be given in degrees or radians. Default=False
             Angles returned in the dataframe will have the same units as the
             input
-        
+
         backend : str, optional
             Which solving method to use. Default='FE'
 
@@ -237,19 +241,20 @@ def getfunctionvalue(planet_instance, radius, velocity, density, strength,
         -------
         peak: float
             The peak dedz value of the simulated solution
-        
+
         alti: float
             The altitude where the peak dedz of the simulated solution happens
-        
+
         dist: float
             The distance between the simulation peak and true peak
     """
     planet_instance.burstpoint = -1
-    result = planet_instance.solve_atmospheric_entry(radius, velocity,
-                                                     density, strength, angle,
-                                                     init_altitude=init_altitude,
-                                                     dt=dt, radians=radians,
-                                                     backend=backend)
+    result = planet_instance.solve_atmospheric_entry(
+                radius, velocity,
+                density, strength, angle,
+                init_altitude=init_altitude,
+                dt=dt, radians=radians,
+                backend=backend)
     energy = planet_instance.calculate_energy(result)
     outcome = planet_instance.analyse_outcome(energy)
     peak = outcome['burst_peak_dedz']
@@ -260,10 +265,11 @@ def getfunctionvalue(planet_instance, radius, velocity, density, strength,
 
 
 def searchstrength(planet_instance, radius, velocity, density,
-                     angle, target_peak, target_alti, strengthrange,
-                     tol, init_altitude, dt, backend, radians=False):
+                   angle, target_peak, target_alti, strengthrange,
+                   tol, init_altitude, dt, backend, radians=False):
     """
-        Find the best strength that minimize the error for a given configuration
+        Find the best strength that minimize the error
+        for a given configuration
 
         Parameters
         ----------
@@ -286,13 +292,13 @@ def searchstrength(planet_instance, radius, velocity, density,
 
         target_peak: float
             The peak dedz value of the true data
-        
+
         target_alti: float
             The altitude of the peak dedz of the true data
 
         strengthrange: list
             The search range of strength
-        
+
         tol: float
             The tolarence of the stopping criteria
 
@@ -306,7 +312,7 @@ def searchstrength(planet_instance, radius, velocity, density,
             Whether angles should be given in degrees or radians. Default=False
             Angles returned in the dataframe will have the same units as the
             input
-        
+
         backend : str, optional
             Which solving method to use. Default='FE'
 
@@ -314,10 +320,10 @@ def searchstrength(planet_instance, radius, velocity, density,
         -------
         peak: float
             The peak dedz value of the simulated solution
-        
+
         alti: float
             The altitude where the peak dedz of the simulated solution happens
-        
+
         dist: float
             The distance between the simulation peak and true peak
     """
