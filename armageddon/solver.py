@@ -199,9 +199,9 @@ class Planet():
         mass = result["mass"]
         velocity = result["velocity"]
         altitude = np.array(result["altitude"])
-        dedz = np.array(0.5 * mass * velocity**2)
+        dedz = np.array(0.5 * mass * velocity**2)/(4.184*10**9)
         temp = (dedz[1:] - dedz[:-1])/(altitude[:-1] - altitude[1:])
-        temp = temp/(4.184*10**9)
+        temp = temp
         temp = np.insert(temp, 0, 0)
         result.insert(len(result.columns),
                       'dedz', -temp)
@@ -284,7 +284,7 @@ class Planet():
 
 #             return pressure
 #         return tabular_density
-    def create_tabular_density(self, atmos_filename):
+    def create_tabular_density(self, filename="./resources/AltitudeDensityTable.csv"):
         """
         Create a function given altitude return the density of atomosphere
         using tabulated value
@@ -300,7 +300,7 @@ class Planet():
         """
         X = []
         Y = []
-        data = pd.read_csv(atmos_filename)
+        data = pd.read_csv(filename)
         for i in data[data.keys()[0]]:
             temp = i.split()
             X.append(eval(temp[0]))
@@ -308,10 +308,10 @@ class Planet():
 
         def tabular_density(x):
 
-            pressure = 1.225 - 9.910220744570666e-05*x + 1.0633480000486046e-09*x ** 2 + 4.098166536722918e-14*x**3+1.0285099346022191e-17*x**4 - 1.045342967336349e-21*x**5 + 4.396108172607025e-26 * \
+            pressure = (1.225 - 9.910220744570666e-05*x + 1.0633480000486046e-09*x ** 2 + 4.098166536722918e-14*x**3+1.0285099346022191e-17*x**4 - 1.045342967336349e-21*x**5 + 4.396108172607025e-26 * \
                 x**6 - 1.0712304649951357e-30*x**7 + 1.657059541531033e-35*x**8 - 1.6597297898210513e-40*x**9 + \
                 1.0474179820376901e-45*x**10 - 3.7975400341113775e-51 * \
-                x**11 + 6.044604125297617e-57*x**12
+                x**11 + 6.044604125297617e-57*x**12)
 
             return pressure
         return tabular_density
