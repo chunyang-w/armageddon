@@ -2,6 +2,7 @@ import pandas as pd
 from numpy import sin, cos, arcsin, arctan
 import numpy as np
 from scipy.stats import norm
+from scipy.optimize import fsolve
 from armageddon.locator import PostcodeLocator
 
 
@@ -9,10 +10,8 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
     """
     Calculate the latitude and longitude of the surface zero location and the
     list of airblast damage radii (m) for a given impact scenario.
-
     Parameters
     ----------
-
     outcome: Dict
         the outcome dictionary from an impact scenario
     lat: float
@@ -25,10 +24,8 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
         List of threshold pressures to define airblast damage levels
     plot: bool
         Boolean value to decide plotting
-
     Returns
     -------
-
     blat: float
         latitude of the surface zero point (degrees)
     blon: float
@@ -39,10 +36,8 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
     plot: plot object
         The plot specifying the areas effected by
         each damage level
-
     Examples
     --------
-
     >>> import armageddon
     >>> outcome = {'burst_altitude': 8e3, 'burst_energy': 7e3,\
                    'burst_distance': 90e3, 'burst_peak_dedz': 1e3,\
@@ -59,25 +54,29 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
     pressures = np.array(pressures)
     lat = np.deg2rad(lat)
     lon = np.deg2rad(lon)
+    damrad = np.array([])
 
     sin_blat = ((sin(lat) * cos(r_h / Rp)) +
                 (cos(lat) * sin(r_h / Rp) * cos(bearing)))
-              
     blat = arcsin(sin_blat)
     blat = float(np.rad2deg(blat))
-
+    
     tan_blon_diff = ((sin(bearing) * sin(r_h / Rp) * cos(lat)) /
-                     (cos(r_h / Rp) - (sin(lat) * sin(blat))))
+                     (cos(r_h / Rp) - (sin(lat) * sin_blat)))
     blon = arctan(tan_blon_diff) + lon
     blon = float(np.rad2deg(blon))
 
     discriminant = np.sqrt((3.24e14 + (1.256e12 * pressures)))
     pre_sol = (((((-1.8e7 + discriminant) / 6.28e11)**(-2/1.3)) *
                 (Ek**(2/3))) - (zb**2))
+    initial = np.sqrt(pre_sol)
 
-    damrad = np.sqrt(pre_sol).tolist()
+    for index in range(len(pressures)):
+        p = pressures[index]
+        f = lambda r: 3.14e11*(((r**2 + zb**2) / (Ek**(2/3)))**(-1.3)) + 1.8e7*(((r**2 + zb**2) / (Ek**(2/3)))**(-0.565)) - p
+        damrad = np.append(damrad, fsolve(f, initial[index]))
 
-    return blat, blon, damrad
+    return blat, blon, damrad.tolist()
 
 
 fiducial_means = {'radius': 35, 'angle': 45, 'strength': 1e7,

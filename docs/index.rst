@@ -40,7 +40,10 @@ governed by a coupled set of ordinary differential equations:
 
 .. math::
    :nowrap:
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
    \begin{math}
    \begin{aligned} 
    \frac{dv}{dt} & = \frac{-C_D\rho_a A v^2}{2 m} + g \sin \theta \\
@@ -146,6 +149,9 @@ You should expand this documentation to include explanatory text for all compone
 
 Function API
 ============
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
 
 .. automodule:: locator
   :members: PostcodeLocator, great_circle_distance, get_sector_code
@@ -166,4 +172,7 @@ Function API
 .. automodule:: extensions
   :members: findstrengthradius, plot_against, getfunctionvalue, searchstrength
   :imported-members: findstrengthradius, plot_against, getfunctionvalue, searchstrength
+<<<<<<< HEAD
 
+=======
+>>>>>>> main

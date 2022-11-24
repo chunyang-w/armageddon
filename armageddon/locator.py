@@ -12,6 +12,9 @@ def get_sector_code(code):
     code = code.replace(' ', '')
     code = code.replace(' ', '')
     code = code[:-1] + ' ' * (4 - len(code[:-1])) + code[-1]
+    code = code.replace(' ', '')
+    code = code.replace(' ', '')
+    code = code[:-1] + ' ' * (4 - len(code[:-1])) + code[-1]
     return code
 
 
@@ -97,6 +100,7 @@ class PostcodeLocator(object):
             lambda row: get_sector_code(row['Postcode']), axis=1
         )
         self.census_df = pd.read_csv(census_file)
+        self.sector_sq = self.postcode_df.value_counts('Sector_Postcode')
         self.sector_sq = self.postcode_df.value_counts('Sector_Postcode')
         self.norm = norm
 
@@ -200,6 +204,27 @@ class PostcodeLocator(object):
                 ]
                 if (target.shape[0] == 0):
                     nested_pc.append(0)
+        col = 'Variable: All usual residents; measures: Value'
+        global_pc = []
+        for pc_list in postcodes:
+            nested_pc = []
+            for pc in pc_list:
+                outcode = None
+                remainder = None
+                if (len(pc) == 7):  # postcode
+                    outcode = pc[:-3].strip()
+                    remainder = pc[-3:]
+                else:  # sector code
+                    outcode = pc[:-1].strip()
+                    remainder = pc[-1]
+                sec_digit = remainder[0]
+                outcode = outcode + ' ' * (5 - len(outcode))
+                sec_code = outcode + sec_digit
+                target = self.census_df[
+                    self.census_df['geography code'] == sec_code
+                ]
+                if (target.shape[0] == 0):
+                    nested_pc.append(0)
                 else:
                     if (sector is True):
                         nested_pc.append(target[col].values[0])
@@ -212,13 +237,3 @@ class PostcodeLocator(object):
                             target[col].values[0] / pc_count))
             global_pc.append(nested_pc)
         return global_pc
-
-locator = PostcodeLocator()
-
-# Find the postcodes in the damage radii
-# postcodes = locator.get_postcodes_by_radius((45,3),
-#                                             radii=[])
-
-# Find the population in each postcode
-population = locator.get_population_of_postcode([[]])
-print(population)
