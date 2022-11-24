@@ -97,7 +97,7 @@ class Planet():
     def solve_atmospheric_entry(
             self, radius, velocity, density, strength, angle,
             init_altitude=100e3, dt=0.05, radians=False,
-            backend="RK4", hard = False):
+            backend="RK4", hard=False):
         """
         Solve the system of differential equations for a given impact scenario
 
@@ -163,18 +163,15 @@ class Planet():
                 print("solving method {} not implemented yet.".format(backend))
                 print("Falling back to FE for now")
                 solver = self.solve_atmospheric_entry_FE
-        if dt >= 0.01:
-            tempdt = 0.01
+        if dt >= 0.02:
+            tempdt = 0.02
             if hard:
                 tempdt = dt
             solver(radius, velocity, angle,
-                init_altitude, tempdt, dt)
-        elif dt < 0.01:
-            self.solve_atmospheric_entry_FE(radius, velocity, angle,
-                                            init_altitude, dt)
+                   init_altitude, tempdt, dt)
         else:
-            solver(radius, velocity, angle,
-                init_altitude, dt, dt)
+            self.solve_atmospheric_entry_RK4(radius, velocity, angle,
+                                            init_altitude, dt, dt)
         if not radians:
             all_angle = [i/np.pi * 180 for i in self.angle]
         else:
@@ -218,7 +215,6 @@ class Planet():
                       'dedz', -temp)
         return result
 
-
     def analyse_outcome(self, result):
         """
         Inspect a pre-found solution to calculate the impact and airburst stats
@@ -260,8 +256,9 @@ class Planet():
                    'burst_energy': burstenergy}
         return outcome
 
-
-    def create_tabular_density(self, filename="./resources/AltitudeDensityTable.csv"):
+    def create_tabular_density(
+            self,
+            filename="./resources/AltitudeDensityTable.csv"):
         """
         Create a function given altitude return the density of atomosphere
         using tabulated value
@@ -287,7 +284,7 @@ class Planet():
             if x > 100e3:
                 return 0
             if x > X[-1]:
-                pressure = (x - X[-1])/(100e3 - X[i-1]) * (0 - Y[-1]) + Y[-1]
+                pressure = (x - X[-1])/(100e3 - X[-1]) * (0 - Y[-1]) + Y[-1]
             for i in range(len(X)):
                 if X[i] >= x:
                     break
@@ -295,6 +292,7 @@ class Planet():
 
             return pressure
         return tabular_density
+
     def solve_atmospheric_entry_RK4(
             self, radius, velocity, angle,
             init_altitude, dt, actualdt):
@@ -364,7 +362,8 @@ class Planet():
             self.solver_angle.append(newangle)
             self.solver_distance.append(newdistance)
             self.solver_radius.append(newradius)
-            self.solver_alltimestep.append(timestep + self.solver_alltimestep[-1])
+            self.solver_alltimestep.append(
+                timestep + self.solver_alltimestep[-1])
             flag = np.isclose(acumulated_step + timestep, actualdt)
             if acumulated_step + timestep >= actualdt or flag:
                 rate = (actualdt - acumulated_step)/timestep
@@ -406,9 +405,12 @@ class Planet():
             'angle', 'radius', 'altitude',
             'velocity', 'mass', 'distance'
         """
-        variables = np.array([self.solver_angle[-1], self.solver_radius[-1],
-                              self.solver_altitude[-1], self.solver_velocity[-1],
-                              self.solver_mass[-1], self.solver_distance[-1]])
+        variables = np.array([self.solver_angle[-1],
+                              self.solver_radius[-1],
+                              self.solver_altitude[-1],
+                              self.solver_velocity[-1],
+                              self.solver_mass[-1],
+                              self.solver_distance[-1]])
         k1 = self.calculator_rk4(variables)
         k2 = self.calculator_rk4(variables + 0.5 * timestep * k1)
         k3 = self.calculator_rk4(variables + 0.5 * timestep * k2)
@@ -526,11 +528,34 @@ class Planet():
             self.radius.append(drdt * timestep + self.radius[-1])
             self.alltimestep.append(timestep + self.alltimestep[-1])
             if (self.altitude[-1] <= 0 or self.mass[-1] <= 0 or
-                self.radius[-1] <= 0 or self.velocity[-1] <= 0 or
-                self.altitude[-1] >= init_altitude):
+                    self.radius[-1] <= 0 or self.velocity[-1] <= 0 or
+                    self.altitude[-1] >= init_altitude):
                 break
 
     def stopping(self, newv, newm, newal, newradius):
+        """
+        Decide whether to stop the solver
+
+        Parameters
+        ----------
+        newv : float
+            The current velocity
+
+        newm : float
+            The current mass
+
+        newal : float
+            The current altitude
+
+        newradius : float
+            The current radius
+
+        Returns
+        -------
+        Result: bool
+            True if solver should stop,
+            False if solver should continue
+        """
         if (newal <= 0 or newm <= 0 or
                 newradius <= 0 or newv <= 0 or
                 newal >= self.altitude[0]):

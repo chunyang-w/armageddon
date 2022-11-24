@@ -65,12 +65,14 @@ def great_circle_distance(latlon1, latlon2):
 class PostcodeLocator(object):
     """Class to interact with a postcode database file."""
 
-    def __init__(self, postcode_file=os.sep.join((os.path.dirname(__file__), '..',
-                                                  'resources',
-                                                  'full_postcodes.csv')),
-                 census_file=os.sep.join((os.path.dirname(__file__), '..',
-                                          'resources',
-                                          'population_by_postcode_sector.csv')),
+    def __init__(self, postcode_file=os.sep.join((
+                                     os.path.dirname(__file__), '..',
+                                     'resources',
+                                     'full_postcodes.csv')),
+                 census_file=os.sep.join((
+                             os.path.dirname(__file__), '..',
+                             'resources',
+                             'population_by_postcode_sector.csv')),
                  norm=great_circle_distance):
         """
         Parameters
@@ -92,7 +94,6 @@ class PostcodeLocator(object):
         self.sector_sq = self.postcode_df.value_counts('Sector_Postcode')
         self.norm = norm
 
-
     def get_postcodes_by_radius(self, X, radii, sector=False):
         """
         Return (unit or sector) postcodes within specific distances of
@@ -112,16 +113,22 @@ class PostcodeLocator(object):
             of radii to the location X.
         Examples
         --------
-        >>> locator = PostcodeLocator('resources/full_postcodes.csv', 'resources/population_by_postcode_sector.csv')
-        >>> postcodes = locator.get_postcodes_by_radius((51.4981, -0.1773), [0.13e3])
-        >>> postcode_dictionaries = [dict.fromkeys(postcodes[i], "risk") for i in range(len(postcodes))]
+        >>> locator = PostcodeLocator(\
+                        'resources/full_postcodes.csv',\
+                        'resources/population_by_postcode_sector.csv')
+        >>> postcodes = locator.get_postcodes_by_radius(\
+                                (51.4981, -0.1773), [0.13e3])
+        >>> postcode_dictionaries = [dict.fromkeys(postcodes[i], "risk")\
+                                        for i in range(len(postcodes))]
         >>> ans1 = [{'SW7 5HG': 'risk','SW7 2BU': 'risk','SW7 5HQ': 'risk',\
                     'SW7 2BT': 'risk','SW7 5HF': 'risk','SW7 2DD': 'risk',\
                     'SW7 2AZ': 'risk'}]
         >>> postcode_dictionaries == ans1
         True
-        >>> postcodes = locator.get_postcodes_by_radius((51.4981, -0.1773), [0.4e3, 0.2e3], True)
-        >>> postcode_dictionaries = [dict.fromkeys(postcodes[i], "risk") for i in range(len(postcodes))]
+        >>> postcodes = locator.get_postcodes_by_radius(\
+                                (51.4981, -0.1773), [0.4e3, 0.2e3], True)
+        >>> postcode_dictionaries = [dict.fromkeys(postcodes[i], "risk")\
+                                        for i in range(len(postcodes))]
         >>> ans2 = [{'SW7 4': 'risk','SW7 5': 'risk','SW7 3': 'risk',\
                     'SW7 1': 'risk','SW7 9': 'risk', 'SW7 2': 'risk'},\
                    {'SW7 4': 'risk','SW7 5': 'risk','SW7 3': 'risk',\
@@ -143,10 +150,8 @@ class PostcodeLocator(object):
             ))
         return place_list
 
-
     def get_postcode_count(self, sec_code):
         return self.sector_sq[sec_code]
-
 
     def get_population_of_postcode(self, postcodes, sector=False):
         """
@@ -164,8 +169,10 @@ class PostcodeLocator(object):
             Contains the populations of input postcode units or sectors
         Examples
         --------
-        >>> locator = PostcodeLocator('resources/full_postcodes.csv', 'resources/population_by_postcode_sector.csv')
-        >>> pop1 = locator.get_population_of_postcode([['SW7 2AZ', 'SW7 2BT', 'SW7 2BU', 'SW7 2DD']])
+        >>> locator = PostcodeLocator('resources/full_postcodes.csv',\
+                                      'resources/population_by_postcode_sector.csv')
+        >>> pop1 = locator.get_population_of_postcode(\
+                            [['SW7 2AZ', 'SW7 2BT', 'SW7 2BU', 'SW7 2DD']])
         >>> pop1
         [[19.0, 19.0, 19.0, 19.0]]
         >>> pop2 = locator.get_population_of_postcode([['SW7  2']], True)

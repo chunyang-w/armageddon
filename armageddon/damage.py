@@ -34,12 +34,24 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     Examples
     --------
     >>> import armageddon
+    >>> import numpy as np
     >>> outcome = {'burst_altitude': 8e3, 'burst_energy': 7e3,\
                    'burst_distance': 90e3, 'burst_peak_dedz': 1e3,\
                    'outcome': 'Airburst'}
-    >>> armageddon.damage_zones(outcome, 52.79, -2.95, 135,\
-                                pressures=[1e3, 3.5e3, 27e3, 43e3])
-    (52.21396905216969, -2.0159088616770737, [115971.31673025587, 42628.36651535611, 9575.214234120964, 5835.9834520793875])
+    >>> result = armageddon.damage_zones(outcome, 52.79, -2.95, 135,\
+                                         pressures=[1e3, 3.5e3, 27e3, 43e3])
+    >>> np.isclose(result[0], 52.21396905216966)
+    True
+    >>> np.isclose(result[1], -2.015908861677074)
+    True
+    >>> np.isclose(result[2][0], 115971.31673025587)
+    True
+    >>> np.isclose(result[2][1], 42628.36651535611)
+    True
+    >>> np.isclose(result[2][2], 9575.214234120966)
+    True
+    >>> np.isclose(result[2][3], 5835.983452079387)
+    True
     """
     r_h = outcome['burst_distance']
     Ek = outcome['burst_energy']
@@ -51,7 +63,6 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     lat = np.deg2rad(lat)
     lon = np.deg2rad(lon)
     bearing = np.deg2rad(bearing)
-    damrad = np.array([])
 
     sin_blat = ((sin(lat) * cos(r_h / Rp)) +
                 (cos(lat) * sin(r_h / Rp) * cos(bearing)))
@@ -62,18 +73,22 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     blon = float(np.rad2deg(blon))
     blat = float(np.rad2deg(blat))
 
-    discriminant = np.sqrt((3.24e14 + (1.256e12 * pressures)))
-    pre_sol = (((((-1.8e7 + discriminant) / 6.28e11)**(-2/1.3)) *
-                (Ek**(2/3))) - (zb**2))
-    initial = np.sqrt(pre_sol)
+    # discriminant = np.sqrt((3.24e14 + (1.256e12 * pressures)))
+    # pre_sol = (((((-1.8e7 + discriminant) / 6.28e11)**(-2/1.3)) *
+    #             (Ek**(2/3))) - (zb**2))
+    # initial = np.sqrt(pre_sol)
+    initial = 10000
+    damrad = np.zeros(len(pressures))
 
+    def f(r, p):
+        return 3.14e11 * r**(-1.3) + 1.8e7 * r**(-0.565) - p
     for index in range(len(pressures)):
         p = pressures[index]
-        f = lambda r: 3.14e11*(((r**2 + zb**2) / (Ek**(2/3)))**(-1.3))\
-            + 1.8e7*(((r**2 + zb**2) / (Ek**(2/3)))**(-0.565)) - p # noqa
-        damrad = np.append(damrad, fsolve(f, initial[index]))
+        # f = lambda r: 3.14e11*(((r**2 + zb**2) / (Ek**(2/3)))**(-1.3))\
+        #     + 1.8e7*(((r**2 + zb**2) / (Ek**(2/3)))**(-0.565)) - p # noqa
+        damrad[index] = (fsolve(f, initial, p) * Ek**(2/3) - zb**2) ** 0.5
 
-    return blat, blon, damrad.tolist()
+    return blat, blon, np.abs(damrad).tolist()
 
 
 fiducial_means = {'radius': 35, 'angle': 45, 'strength': 1e7,
@@ -126,7 +141,14 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
     >>> import armageddon
     >>> import pandas as pd
     >>> planet = armageddon.Planet()
-    >>> type(armageddon.impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs, pressure=27.e3, nsamples=10, sector=True))==pd.DataFrame
+    >>> type_of_risk = type(armageddon.impact_risk(\
+                                    planet,\
+                                    means=fiducial_means,\
+                                    stdevs=fiducial_stdevs,\
+                                    pressure=27.e3,\
+                                    nsamples=10,\
+                                    sector=True))
+    >>> type_of_risk == pd.DataFrame
     True
     """
     locator = PostcodeLocator()

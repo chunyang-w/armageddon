@@ -66,10 +66,10 @@ def test_planet_signature(armageddon):
                          g=9.81, H=8000., rho0=1.2)
 
     # call by keyword
-    planet = armageddon.Planet(**inputs)
+    planet = armageddon.Planet(**inputs) # noqa
 
     # call by position
-    planet = armageddon.Planet(*inputs.values())
+    planet = armageddon.Planet(*inputs.values()) # noqa
 
 
 def test_attributes(planet):
@@ -141,7 +141,7 @@ def test_great_circle_distance(armageddon):
     data = np.array([[1.28580537e+05, 2.59579735e+05, 2.25409106e+02],
                     [9.49352980e-02, 2.24656571e+05, 1.28581437e+05],
                     [2.72529953e+05, 2.08175028e+05, 1.96640630e+05]])
-    
+
     data2 = np.array([[1336847.19841416, 297512.21050142],
                       [1223440.76045278, 281091.18822609],
                       [1334757.37253881, 200251.89330543]])

@@ -29,6 +29,7 @@ velocity = tk.Entry(window).grid(row=6, column=1)
 pressure = tk.Label(window, text="pressure").grid(row=7, column=0)
 velocity = tk.Entry(window).grid(row=7, column=1)
 
+
 def clicked():
     res = "Welcome to " + tk.txt.get()
     tk.lbl.configure(text=res)

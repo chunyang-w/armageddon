@@ -49,7 +49,8 @@ def damage_map(blat, blon, damrad, lat, lon):
                 map=None,
                 color='red'
             )
-            folium.PolyLine([[lat, lon], [blat, blon]], color='black').add_to(map)
+            folium.PolyLine(
+                [[lat, lon], [blat, blon]], color='black').add_to(map)
         else:
             map = plot_circle(
                 blat, blon,
