@@ -97,7 +97,7 @@ class Planet():
 
     def solve_atmospheric_entry(
             self, radius, velocity, density, strength, angle,
-            init_altitude=100e3, dt=0.05, radians=False, backend="FE"):
+            init_altitude=100e3, dt=0.05, radians=False, backend="RK4"):
         """
         Solve the system of differential equations for a given impact scenario
 
@@ -195,7 +195,7 @@ class Planet():
 
         # Replace these lines with your code to add the dedz column to
         # the result DataFrame
-        result = result.copy()
+        # result = result.copy()
         mass = result["mass"]
         velocity = result["velocity"]
         altitude = np.array(result["altitude"])
