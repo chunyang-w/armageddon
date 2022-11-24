@@ -130,8 +130,6 @@ class PostcodeLocator(object):
 
     def get_postcode_count(self, sec_code):
         return self.sector_sq[sec_code]
-        return self.postcode_df['Postcode'].str.contains(
-            sec_code, na=False).sum()
 
     def get_population_of_postcode(self, postcodes, sector=False):
         """
