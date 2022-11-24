@@ -69,7 +69,7 @@ def test_planet_signature(armageddon):
     planet = armageddon.Planet(**inputs)
 
     # call by position
-    planet = armageddon.Planet(*inputs.values())
+    # planet = armageddon.Planet(*inputs.values())
 
 
 def test_attributes(planet):

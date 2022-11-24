@@ -1,0 +1,24 @@
+\indexentry{module@\spxentry{module}!locator@\spxentry{locator}|hyperpage}{5}
+\indexentry{locator@\spxentry{locator}!module@\spxentry{module}|hyperpage}{5}
+\indexentry{PostcodeLocator (class in locator)@\spxentry{PostcodeLocator}\spxextra{class in locator}|hyperpage}{5}
+\indexentry{get\_population\_of\_postcode() (locator.PostcodeLocator method)@\spxentry{get\_population\_of\_postcode()}\spxextra{locator.PostcodeLocator method}|hyperpage}{5}
+\indexentry{get\_postcodes\_by\_radius() (locator.PostcodeLocator method)@\spxentry{get\_postcodes\_by\_radius()}\spxextra{locator.PostcodeLocator method}|hyperpage}{5}
+\indexentry{great\_circle\_distance() (in module locator)@\spxentry{great\_circle\_distance()}\spxextra{in module locator}|hyperpage}{6}
+\indexentry{module@\spxentry{module}!solver@\spxentry{solver}|hyperpage}{7}
+\indexentry{solver@\spxentry{solver}!module@\spxentry{module}|hyperpage}{7}
+\indexentry{Planet (class in solver)@\spxentry{Planet}\spxextra{class in solver}|hyperpage}{7}
+\indexentry{RK4\_helper() (solver.Planet method)@\spxentry{RK4\_helper()}\spxextra{solver.Planet method}|hyperpage}{7}
+\indexentry{analyse\_outcome() (solver.Planet method)@\spxentry{analyse\_outcome()}\spxextra{solver.Planet method}|hyperpage}{7}
+\indexentry{calculate\_energy() (solver.Planet method)@\spxentry{calculate\_energy()}\spxextra{solver.Planet method}|hyperpage}{8}
+\indexentry{calculator\_rk4() (solver.Planet method)@\spxentry{calculator\_rk4()}\spxextra{solver.Planet method}|hyperpage}{8}
+\indexentry{create\_tabular\_density() (solver.Planet method)@\spxentry{create\_tabular\_density()}\spxextra{solver.Planet method}|hyperpage}{8}
+\indexentry{solve\_atmospheric\_entry() (solver.Planet method)@\spxentry{solve\_atmospheric\_entry()}\spxextra{solver.Planet method}|hyperpage}{8}
+\indexentry{solve\_atmospheric\_entry\_FE() (solver.Planet method)@\spxentry{solve\_atmospheric\_entry\_FE()}\spxextra{solver.Planet method}|hyperpage}{9}
+\indexentry{solve\_atmospheric\_entry\_RK4() (solver.Planet method)@\spxentry{solve\_atmospheric\_entry\_RK4()}\spxextra{solver.Planet method}|hyperpage}{9}
+\indexentry{module@\spxentry{module}!damage@\spxentry{damage}|hyperpage}{9}
+\indexentry{damage@\spxentry{damage}!module@\spxentry{module}|hyperpage}{9}
+\indexentry{damage\_zones() (in module damage)@\spxentry{damage\_zones()}\spxextra{in module damage}|hyperpage}{9}
+\indexentry{impact\_risk() (in module damage)@\spxentry{impact\_risk()}\spxextra{in module damage}|hyperpage}{10}
+\indexentry{module@\spxentry{module}!mapping@\spxentry{mapping}|hyperpage}{11}
+\indexentry{mapping@\spxentry{mapping}!module@\spxentry{module}|hyperpage}{11}
+\indexentry{plot\_circle() (in module mapping)@\spxentry{plot\_circle()}\spxextra{in module mapping}|hyperpage}{11}
