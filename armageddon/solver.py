@@ -164,24 +164,29 @@ class Planet():
                 print("Falling back to FE for now")
                 solver = self.solve_atmospheric_entry_FE
         if dt >= 0.05:
-            stepmul = round(dt/0.05)
             solver(radius, velocity, angle,
-                init_altitude, 0.05, stepmul)
+                init_altitude, 0.05, dt)
         else:
-            stepmul = 1
             solver(radius, velocity, angle,
-                init_altitude, dt, stepmul)
+                init_altitude, dt, dt)
+            self.velocity = self.solver_velocity[:-1]
+            self.mass = self.solver_mass[:-1]
+            self.angle = self.solver_angle[:-1]
+            self.altitude = self.solver_altitude[:-1]
+            self.distance = self.solver_distance[:-1]
+            self.radius = self.solver_radius[:-1]
+            self.alltimestep = self.solver_alltimestep[:-1]
         if not radians:
             all_angle = [i/np.pi * 180 for i in self.angle]
         else:
             all_angle = self.angle
-        return pd.DataFrame({'velocity': self.velocity[:-1],
-                             'mass': self.mass[:-1],
-                             'angle': all_angle[:-1],
-                             'altitude': self.altitude[:-1],
-                             'distance': self.distance[:-1],
-                             'radius': self.radius[:-1],
-                             'time': self.alltimestep[:-1]})
+        return pd.DataFrame({'velocity': self.velocity,
+                             'mass': self.mass,
+                             'angle': all_angle,
+                             'altitude': self.altitude,
+                             'distance': self.distance,
+                             'radius': self.radius,
+                             'time': self.alltimestep})
 
     def calculate_energy(self, result):
         """
@@ -206,9 +211,9 @@ class Planet():
         mass = result["mass"]
         velocity = result["velocity"]
         altitude = np.array(result["altitude"])
-        dedz = np.array(0.5 * mass * velocity**2)
-        temp = (dedz[1:] - dedz[:-1])/(altitude[:-1] - altitude[1:])
-        temp = temp/(4.184*10**9)
+        dedz = np.array(0.5 * mass * velocity/(4.184*10**9) * velocity)
+        temp = (dedz[1:] - dedz[:-1]) / (altitude[:-1] - altitude[1:])
+        temp = temp
         temp = np.insert(temp, 0, 0)
         result.insert(len(result.columns),
                       'dedz', -temp)
@@ -294,7 +299,7 @@ class Planet():
 
     def solve_atmospheric_entry_RK4(
             self, radius, velocity, angle,
-            init_altitude, dt, stepmul):
+            init_altitude, dt, actualdt):
         """
         Solve the system of differential equations for a given impact scenario
         using RK4 method
@@ -330,29 +335,64 @@ class Planet():
         self.altitude = [init_altitude]
         self.distance = [0]
         self.radius = [radius]
-        timestep = dt
+        self.solver_velocity = [velocity]
+        self.solver_mass = [4/3 * np.pi * radius**3 * self.density]
+        self.solver_angle = [angle]
+        self.solver_altitude = [init_altitude]
+        self.solver_distance = [0]
+        self.solver_radius = [radius]
         self.alltimestep = [0]
+        self.solver_alltimestep = [0]
+        timestep = dt
         iter_num = 0
+        acumulated_step = 0
+        aclist = []
         while True:
             ctheta, cr, cz, cv, cm, cx = self.RK4_helper(timestep)
-            newv = cv + self.velocity[-1]
-            newm = cm + self.mass[-1]
-            newal = cz + self.altitude[-1]
-            newangle = ctheta + self.angle[-1]
-            newdistance = cx + self.distance[-1]
-            newradius = cr + self.radius[-1]
-            
+            newv = cv + self.solver_velocity[-1]
+            newm = cm + self.solver_mass[-1]
+            newal = cz + self.solver_altitude[-1]
+            newangle = ctheta + self.solver_angle[-1]
+            newdistance = cx + self.solver_distance[-1]
+            newradius = cr + self.solver_radius[-1]
+            self.solver_velocity.append(newv)
+            self.solver_mass.append(newm)
+            self.solver_altitude.append(newal)
+            self.solver_angle.append(newangle)
+            self.solver_distance.append(newdistance)
+            self.solver_radius.append(newradius)
+            self.solver_alltimestep.append(timestep + self.solver_alltimestep[-1])
+            flag = np.isclose(acumulated_step + timestep, actualdt)
+            # print(111)
+            if acumulated_step + timestep >= actualdt or flag:
+                # print(acumulated_step + timestep, actualdt)
+                # if iter_num >=0:
+                #     print(self.alltimestep)
+                #     print(self.solver_alltimestep)
+                #     quit()
+                rate = (actualdt - acumulated_step)/timestep
+                output_v = rate*cv + self.solver_velocity[-1]
+                output_m = rate*cm + self.solver_mass[-1]
+                output_al = rate*cz + self.solver_altitude[-1]
+                output_angle = rate*ctheta + self.solver_angle[-1]
+                output_dis = rate*cx + self.solver_distance[-1]
+                output_rad = rate*cr + self.solver_radius[-1]
+                self.velocity.append(output_v)
+                self.mass.append(output_m)
+                self.altitude.append(output_al)
+                self.angle.append(output_angle)
+                self.distance.append(output_dis)
+                self.radius.append(output_rad)
+                self.alltimestep.append(actualdt + self.alltimestep[-1])
+                acumulated_step -= actualdt
             if self.stopping(newv, newm, newal, newradius):
                 break
-            if iter_num % stepmul == 0:
-                self.velocity.append(newv)
-                self.mass.append(newm)
-                self.altitude.append(newal)
-                self.angle.append(newangle)
-                self.distance.append(newdistance)
-                self.radius.append(newradius)
-                self.alltimestep.append(actual_timestep + self.alltimestep[-1])
             iter_num += 1
+            acumulated_step += timestep
+            if flag:
+                acumulated_step = 0
+            aclist.append(acumulated_step)
+        # print(aclist)
 
     def RK4_helper(self, timestep):
         """
@@ -371,9 +411,9 @@ class Planet():
             'angle', 'radius', 'altitude',
             'velocity', 'mass', 'distance'
         """
-        variables = np.array([self.angle[-1], self.radius[-1],
-                              self.altitude[-1], self.velocity[-1],
-                              self.mass[-1], self.distance[-1]])
+        variables = np.array([self.solver_angle[-1], self.solver_radius[-1],
+                              self.solver_altitude[-1], self.solver_velocity[-1],
+                              self.solver_mass[-1], self.solver_distance[-1]])
         k1 = self.calculator_rk4(variables)
         k2 = self.calculator_rk4(variables + 0.5 * timestep * k1)
         k3 = self.calculator_rk4(variables + 0.5 * timestep * k2)
