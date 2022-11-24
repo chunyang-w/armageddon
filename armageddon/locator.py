@@ -9,9 +9,7 @@ __all__ = ['PostcodeLocator', 'great_circle_distance', 'get_sector_code']
 
 def get_sector_code(code):
     code = code[:-2]
-    code = code.replace(' ', '')
-    code = code.replace(' ', '')
-    code = code[:-1] + ' ' * (4 - len(code[:-1])) + code[-1]
+    code = code[:-1] + ' ' + code[-1]
     return code
 
 
@@ -128,10 +126,6 @@ class PostcodeLocator(object):
             ))
         return place_list
 
-    def get_postcode_count(self, sec_code):
-        return self.sector_sq[sec_code]
-        return self.postcode_df['Postcode'].str.contains(
-            sec_code, na=False).sum()
 
     def get_population_of_postcode(self, postcodes, sector=False):
         """
@@ -157,36 +151,34 @@ class PostcodeLocator(object):
         >>> pop2
         [[2283.0]]
         """
-        col = 'Variable: All usual residents; measures: Value'
-        global_pc = []
-        for pc_list in postcodes:
-            nested_pc = []
-            for pc in pc_list:
-                outcode = None
-                remainder = None
-                if (len(pc) == 7):  # postcode
-                    outcode = pc[:-3].strip()
-                    remainder = pc[-3:]
-                else:  # sector code
-                    outcode = pc[:-1].strip()
-                    remainder = pc[-1]
-                sec_digit = remainder[0]
-                outcode = outcode + ' ' * (5 - len(outcode))
-                sec_code = outcode + sec_digit
-                target = self.census_df[
-                    self.census_df['geography code'] == sec_code
-                ]
-                if (target.shape[0] == 0):
-                    nested_pc.append(0)
-                else:
-                    if (sector is True):
-                        nested_pc.append(target[col].values[0])
+        postcodes_array_2d = np.asarray(postcodes, dtype=object)
+        if sector == True:
+            population = np.zeros_like(postcodes_array_2d)
+            for pop_index, postcodes_array_1d in enumerate(postcodes_array_2d):
+                temp_pop = np.array([], dtype=int)
+                for val in postcodes_array_1d:
+                    if self.census_df['geography'].eq(val).any():
+                        temp_pop = np.append(temp_pop, self.census_df[self.census_df['geography']==val]['Variable: All usual residents; measures: Value'].values[0])
                     else:
-                        outcode = outcode.strip()
-                        outcode = outcode + ' ' * (4 - len(outcode))
-                        sec_code = outcode + sec_digit
-                        pc_count = self.get_postcode_count(sec_code)
-                        nested_pc.append(round(
-                            target[col].values[0] / pc_count))
-            global_pc.append(nested_pc)
-        return global_pc
+                        temp_pop = np.append(temp_pop, 0)
+                population[pop_index] = temp_pop.tolist()
+            return population.tolist()
+        else:
+            postcodes_valuecounts = self.postcode_df['Sector_Postcode'].value_counts().sort_values()
+            population = np.zeros_like(postcodes_array_2d)
+            vectorized_sector_encoder = np.vectorize(get_sector_code)
+            for i, v in enumerate(postcodes_array_2d):
+                postcodes_array_2d[i] = vectorized_sector_encoder(v)
+            for pop_index, postcodes_array_1d in enumerate(postcodes_array_2d):
+                temp_pop = np.array([], dtype=int)
+                temp_sector = np.array([], dtype=int)
+                for val in postcodes_array_1d:
+                    if self.census_df['geography'].eq(val).any():
+                        temp_pop = np.append(temp_pop, self.census_df[self.census_df['geography']==val]['Variable: All usual residents; measures: Value'].values[0])
+                        temp_sector = np.append(temp_sector, postcodes_valuecounts[val])
+                    else:
+                        temp_pop = np.append(temp_pop, 0)
+                        temp_sector = np.append(temp_sector, 1)
+                temp_pop = np.round(temp_pop / temp_sector).astype(int).tolist()
+                population[pop_index] = temp_pop
+            return population.tolist()
