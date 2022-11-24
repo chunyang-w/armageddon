@@ -110,6 +110,6 @@ class MyWindow:
 
 window = tk.Tk()
 mywin = MyWindow(window)
-window.title('Hello Python')
+window.title('Airbust visualisor')
 window.geometry("400x400+10+10")
 window.mainloop()
