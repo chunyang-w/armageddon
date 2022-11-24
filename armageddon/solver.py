@@ -97,7 +97,8 @@ class Planet():
 
     def solve_atmospheric_entry(
             self, radius, velocity, density, strength, angle,
-            init_altitude=100e3, dt=0.05, radians=False, backend="RK4"):
+            init_altitude=100e3, dt=0.05, radians=False,
+            backend="RK4", hard = False):
         """
         Solve the system of differential equations for a given impact scenario
 
@@ -164,8 +165,11 @@ class Planet():
                 print("Falling back to FE for now")
                 solver = self.solve_atmospheric_entry_FE
         if dt >= 0.01:
+            tempdt = 0.01
+            if hard:
+                tempdt = dt
             solver(radius, velocity, angle,
-                init_altitude, 0.01, dt)
+                init_altitude, tempdt, dt)
         elif dt < 0.01:
             self.solve_atmospheric_entry_FE(radius, velocity, angle,
                                             init_altitude, dt)
@@ -215,6 +219,7 @@ class Planet():
                       'dedz', -temp)
         return result
 
+
     def analyse_outcome(self, result):
         """
         Inspect a pre-found solution to calculate the impact and airburst stats
@@ -256,42 +261,7 @@ class Planet():
                    'burst_energy': burstenergy}
         return outcome
 
-#     def create_tabular_density(
-#             self,
-#             filename="./resources/AltitudeDensityTable.csv"):
-#         """
-#         Create a function given altitude return the density of atomosphere
-#         using tabulated value
 
-#         Parameters
-#         ----------
-#         filename : str, optional
-#             Path to the tabular. default="./resources/AltitudeDensityTable.csv"
-
-#         Returns
-#         -------
-#         tabular_density : function
-#             A function that takes altitude as input and return the density of
-#             atomosphere density at given altitude.
-#         """
-#         X = []
-#         Y = []
-#         data = pd.read_csv(filename)
-#         for i in data[data.keys()[0]]:
-#             temp = i.split()
-#             X.append(eval(temp[0]))
-#             Y.append(eval(temp[1]))
-
-#         def tabular_density(x):
-#             if x > X[-1]:
-#                 return 0
-#             for i in range(len(X)):
-#                 if X[i] >= x:
-#                     break
-#             pressure = (x - X[i-1])/(X[i] - X[i-1]) * (Y[i] - Y[i-1]) + Y[i-1]
-
-#             return pressure
-#         return tabular_density
     def create_tabular_density(self, filename="./resources/AltitudeDensityTable.csv"):
         """
         Create a function given altitude return the density of atomosphere
@@ -488,7 +458,7 @@ class Planet():
 
     def solve_atmospheric_entry_FE(
             self, radius, velocity, angle,
-            init_altitude, dt):
+            init_altitude, dt, dtextra):
         """
         Solve the system of differential equations for a given impact scenario
         using forward Eular method
