@@ -39,7 +39,7 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
                    'outcome': 'Airburst'}
     >>> armageddon.damage_zones(outcome, 52.79, -2.95, 135,\
                                 pressures=[1e3, 3.5e3, 27e3, 43e3])
-    (51.98371949678459, -2.8338706741653983, [115971.31673025587, 42628.36651535611, 9575.214234120964, 5835.9834520793875])
+    (52.21396905216966, -2.015908861677074, [115971.31673025587, 42628.36651535611, 9575.214234120964, 5835.9834520793875])
     """
     r_h = outcome['burst_distance']
     Ek = outcome['burst_energy']
@@ -75,10 +75,6 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
 
     return blat, blon, damrad.tolist()
 
-outcome = {'burst_altitude': 8e3, 'burst_energy': 7e3,
-                   'burst_distance': 90e3, 'burst_peak_dedz': 1e3,
-                   'outcome': 'Airburst'}
-print(damage_zones(outcome, 52.79, -2.95, 135, pressures=43e3))
 
 fiducial_means = {'radius': 35, 'angle': 45, 'strength': 1e7,
                   'density': 3000, 'velocity': 19e3,
@@ -125,6 +121,13 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
         A pandas DataFrame with columns for postcode (or postcode sector) and
         the associated risk. These should be called ``postcode`` or ``sector``,
         and ``risk``.
+    Examples:
+    ---------
+    >>> import armageddon
+    >>> import pandas as pd
+    >>> planet = armageddon.Planet()
+    >>> type(armageddon.impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs, pressure=27.e3, nsamples=10, sector=True))==pd.DataFrame
+    True
     """
     locator = PostcodeLocator()
     params = list(zip(means.values(), stdevs.values()))
