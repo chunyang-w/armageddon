@@ -33,7 +33,7 @@ jobs:
         conda env create -f environment.yml
         conda init zsh
         source ~/.zshrc
-        conda activate mpm_la
+        conda activate ACS
 
     - name: Test with pytest
       run: |
