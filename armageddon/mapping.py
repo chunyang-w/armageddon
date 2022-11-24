@@ -40,7 +40,7 @@ def plot_circle(lat, lon, radius, map=None, **kwargs):
 
 
 def damage_map(blat, blon, damrad, lat, lon):
-    colors = ['yellow', 'blue', 'white']
+    damrad = damrad[::-1]
     for rad_index in range(len(damrad)):
         if rad_index == 0:
             map = plot_circle(
@@ -54,7 +54,6 @@ def damage_map(blat, blon, damrad, lat, lon):
             map = plot_circle(
                 blat, blon,
                 damrad[rad_index],
-                map,
-                colors=np.roll(colors, rad_index)
+                map
             )
     return map
