@@ -145,6 +145,9 @@ You should expand this documentation to include explanatory text for all compone
 
 Function API
 ============
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
 
 .. automodule:: locator
   :members: PostcodeLocator, great_circle_distance, get_sector_code
