@@ -142,7 +142,7 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
             analysis, lat, lon, bearing, pressure
         )
         damcode = locator.get_postcodes_by_radius(
-            (blat, blon), [damrad], sector)[0]
+            (blat, blon), damrad, sector)[0]
         # print('blast data', blat, blon, damrad)
         postcodes = postcodes + damcode
     postcode_sq = pd.Series(data=np.array(postcodes))
