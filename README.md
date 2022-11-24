@@ -4,6 +4,8 @@ Armageddon is a Python package that predicts the fate of small asteroids enterin
 
 Each software module is provided with full source code, example of usage, and automated tests.
 
+For further information on the project specfication, see refer to the notebooks: [`ProjectDescription.ipynb`](https://github.com/ese-msc-2022/acs-armageddon-Dimorphos/blob/main/ProjectDescription.ipynb), [`AirburstSolver.ipynb`](https://github.com/ese-msc-2022/acs-armageddon-Dimorphos/blob/main/AirburstSolver.ipynb) and [`DamageMapper.ipynb`](https://github.com/ese-msc-2022/acs-armageddon-Dimorphos/blob/main/DamageMapper.ipynb).
+
 ## How the package works
 
 The underlying mathematics employs the dynamics of an asteroid in Earth’s atmosphere prior to break-up as a system of ordinary differential equations. It takes into consideration the characteristics of a given asteroid such as its initial mass, speed, trajectory angle, and internal strength.
@@ -17,6 +19,17 @@ To install the module and any pre-requisites, from the base directory run
 pip install -r requirements.txt
 pip install -e .
 ```  
+
+## Contents
+
+### Repository Architecture
+
+* **armageddon/** All the main functions
+* **docs/**
+* **examples/**
+* **images/**
+* **resources/**
+* **tests/**
 
 ## Downloading postcode data
 
@@ -45,11 +58,11 @@ See the `docs` directory for the preliminary documentation provided that you sho
 
 ## Example usage
 
-For example usage see `example.py` in the examples folder:
+To get started, the user is recommended to use the example dataset which comes with the packages. 
+
+Within the example folder, see `example.py`:
 ```
 python examples/example.py
 ```
 
-## More information
-
-For more information on the project specfication, see the python notebooks: `ProjectDescription.ipynb`, `AirburstSolver.ipynb` and `DamageMapper.ipynb`.
+## Copyright and License
