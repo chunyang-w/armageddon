@@ -1,6 +1,14 @@
-# ACS-1-armageddon
+# ACS-1-Armageddon
 
-This is a very brief Readme to familiarise you with how to install and run the tool you will develop. You should expand and elaborate on this in your final version.
+Armageddon is a Python package that predicts the fate of small asteroids entering Earth’s atmosphere. The Armageddon package can be used to demonstrate a hazard map for an impact over the UK for known asteroids. 
+
+Each software module is provided with full source code, example of usage, and automated tests.
+
+## How the package works
+
+The underlying mathematics employs the dynamics of an asteroid in Earth’s atmosphere prior to break-up as a system of ordinary differential equations. It takes into consideration the characteristics of a given asteroid such as its initial mass, speed, trajectory angle, and internal strength.
+
+The solutions are then used to predict the airblast damage on the ground and the postcodes and population affected.
 
 ## Installation
 
