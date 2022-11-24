@@ -176,13 +176,13 @@ class Planet():
             all_angle = [i/np.pi * 180 for i in self.angle]
         else:
             all_angle = self.angle
-        return pd.DataFrame({'velocity': self.velocity[:-1],
-                             'mass': self.mass[:-1],
-                             'angle': all_angle[:-1],
-                             'altitude': self.altitude[:-1],
-                             'distance': self.distance[:-1],
-                             'radius': self.radius[:-1],
-                             'time': self.alltimestep[:-1]})
+        return pd.DataFrame({'velocity': self.velocity,
+                             'mass': self.mass,
+                             'angle': all_angle,
+                             'altitude': self.altitude,
+                             'distance': self.distance,
+                             'radius': self.radius,
+                             'time': self.alltimestep})
 
     def calculate_energy(self, result):
         """
@@ -315,7 +315,6 @@ class Planet():
             Y.append(eval(temp[1]))
 
         def tabular_density(x):
-<<<<<<< HEAD
             if x > 100e3:
                 return 0
             if x > X[-1]:
@@ -324,13 +323,6 @@ class Planet():
                 if X[i] >= x:
                     break
             pressure = (x - X[i-1])/(X[i] - X[i-1]) * (Y[i] - Y[i-1]) + Y[i-1]
-=======
-
-            pressure = (1.225 - 9.910220744570666e-05*x + 1.0633480000486046e-09*x ** 2 + 4.098166536722918e-14*x**3+1.0285099346022191e-17*x**4 - 1.045342967336349e-21*x**5 + 4.396108172607025e-26 * \
-                x**6 - 1.0712304649951357e-30*x**7 + 1.657059541531033e-35*x**8 - 1.6597297898210513e-40*x**9 + \
-                1.0474179820376901e-45*x**10 - 3.7975400341113775e-51 * \
-                x**11 + 6.044604125297617e-57*x**12)
->>>>>>> main
 
             return pressure
         return tabular_density
@@ -405,7 +397,6 @@ class Planet():
             self.solver_radius.append(newradius)
             self.solver_alltimestep.append(timestep + self.solver_alltimestep[-1])
             flag = np.isclose(acumulated_step + timestep, actualdt)
-
             if acumulated_step + timestep >= actualdt or flag:
                 rate = (actualdt - acumulated_step)/timestep
                 output_v = rate*cv + old_velocity
@@ -428,7 +419,6 @@ class Planet():
             acumulated_step += timestep
             if flag:
                 acumulated_step = 0
-        # print(aclist)
 
     def RK4_helper(self, timestep):
         """

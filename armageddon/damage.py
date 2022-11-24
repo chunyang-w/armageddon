@@ -39,8 +39,7 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
                    'outcome': 'Airburst'}
     >>> armageddon.damage_zones(outcome, 52.79, -2.95, 135,\
                                 pressures=[1e3, 3.5e3, 27e3, 43e3])
-    (51.98371949678461, -2.8338706741653983, [115971.31673025587, 
-    42628.36651535611, 9575.214234120964, 5835.9834520793875])
+    (51.98371949678459, -2.8338706741653983, [115971.31673025587, 42628.36651535611, 9575.214234120964, 5835.9834520793875])
     """
     r_h = outcome['burst_distance']
     Ek = outcome['burst_energy']
@@ -51,6 +50,7 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     pressures = np.array(pressures)
     lat = np.deg2rad(lat)
     lon = np.deg2rad(lon)
+    bearing = np.deg2rad(bearing)
     damrad = np.array([])
 
     sin_blat = ((sin(lat) * cos(r_h / Rp)) +
