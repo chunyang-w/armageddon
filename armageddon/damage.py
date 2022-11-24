@@ -10,10 +10,8 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     """
     Calculate the latitude and longitude of the surface zero location and the
     list of airblast damage radii (m) for a given impact scenario.
-
     Parameters
     ----------
-
     outcome: Dict
         the outcome dictionary from an impact scenario
     lat: float
@@ -24,10 +22,8 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
         Bearing (azimuth) relative to north of meteoroid trajectory (degrees)
     pressures: float, arraylike
         List of threshold pressures to define airblast damage levels
-
     Returns
     -------
-
     blat: float
         latitude of the surface zero point (degrees)
     blon: float
@@ -35,10 +31,8 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     damrad: arraylike, float
         List of distances specifying the blast radii
         for the input damage levels
-
     Examples
     --------
-
     >>> import armageddon
     >>> outcome = {'burst_altitude': 8e3, 'burst_energy': 7e3,
                    'burst_distance': 90e3, 'burst_peak_dedz': 1e3,
@@ -60,9 +54,8 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     sin_blat = ((sin(lat) * cos(r_h / Rp)) +
                 (cos(lat) * sin(r_h / Rp) * cos(bearing)))
     blat = arcsin(sin_blat)
-
     tan_blon_diff = ((sin(bearing) * sin(r_h / Rp) * cos(lat)) /
-                     (cos(r_h / Rp) - (sin(lat) * sin(blat))))
+                     (cos(r_h / Rp) - (sin(lat) * sin_blat)))
     blon = arctan(tan_blon_diff) + lon
     blon = float(np.rad2deg(blon))
     blat = float(np.rad2deg(blat))
