@@ -126,6 +126,7 @@ class PostcodeLocator(object):
             ))
         return place_list
 
+
     def get_population_of_postcode(self, postcodes, sector=False):
         """
         Return populations of a list of postcode units or sectors.
