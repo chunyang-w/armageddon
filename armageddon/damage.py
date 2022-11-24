@@ -6,7 +6,7 @@ from scipy.optimize import fsolve
 from armageddon.locator import PostcodeLocator
 
 
-def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
+def damage_zones(outcome, lat, lon, bearing, pressures):
     """
     Calculate the latitude and longitude of the surface zero location and the
     list of airblast damage radii (m) for a given impact scenario.
@@ -22,8 +22,6 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
         Bearing (azimuth) relative to north of meteoroid trajectory (degrees)
     pressures: float, arraylike
         List of threshold pressures to define airblast damage levels
-    plot: bool
-        Boolean value to decide plotting
     Returns
     -------
     blat: float
@@ -33,9 +31,6 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
     damrad: arraylike, float
         List of distances specifying the blast radii
         for the input damage levels
-    plot: plot object
-        The plot specifying the areas effected by
-        each damage level
     Examples
     --------
     >>> import armageddon
@@ -51,6 +46,8 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
     Ek = outcome['burst_energy']
     zb = outcome['burst_altitude']
     Rp = 6371e3
+    if type(pressures) == float:
+        pressures = [float(pressures)]
     pressures = np.array(pressures)
     lat = np.deg2rad(lat)
     lon = np.deg2rad(lon)
@@ -59,12 +56,11 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
     sin_blat = ((sin(lat) * cos(r_h / Rp)) +
                 (cos(lat) * sin(r_h / Rp) * cos(bearing)))
     blat = arcsin(sin_blat)
-    blat = float(np.rad2deg(blat))
-    
     tan_blon_diff = ((sin(bearing) * sin(r_h / Rp) * cos(lat)) /
                      (cos(r_h / Rp) - (sin(lat) * sin_blat)))
     blon = arctan(tan_blon_diff) + lon
     blon = float(np.rad2deg(blon))
+    blat = float(np.rad2deg(blat))
 
     discriminant = np.sqrt((3.24e14 + (1.256e12 * pressures)))
     pre_sol = (((((-1.8e7 + discriminant) / 6.28e11)**(-2/1.3)) *
@@ -73,11 +69,16 @@ def damage_zones(outcome, lat, lon, bearing, pressures, map=False):
 
     for index in range(len(pressures)):
         p = pressures[index]
-        f = lambda r: 3.14e11*(((r**2 + zb**2) / (Ek**(2/3)))**(-1.3)) + 1.8e7*(((r**2 + zb**2) / (Ek**(2/3)))**(-0.565)) - p
+        f = lambda r: 3.14e11*(((r**2 + zb**2) / (Ek**(2/3)))**(-1.3))\
+            + 1.8e7*(((r**2 + zb**2) / (Ek**(2/3)))**(-0.565)) - p # noqa
         damrad = np.append(damrad, fsolve(f, initial[index]))
 
     return blat, blon, damrad.tolist()
 
+outcome = {'burst_altitude': 8e3, 'burst_energy': 7e3,
+                   'burst_distance': 90e3, 'burst_peak_dedz': 1e3,
+                   'outcome': 'Airburst'}
+print(damage_zones(outcome, 52.79, -2.95, 135, pressures=43e3))
 
 fiducial_means = {'radius': 35, 'angle': 45, 'strength': 1e7,
                   'density': 3000, 'velocity': 19e3,
@@ -145,7 +146,7 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
         # print('blast data', blat, blon, damrad)
         postcodes = postcodes + damcode
     postcode_sq = pd.Series(data=np.array(postcodes))
-    postcode_sq = postcode_sq.value_counts().sort_values(ascending=False)
+    postcode_sq = postcode_sq.value_counts()
     prob = postcode_sq.values / nsamples
     popu = locator.get_population_of_postcode([postcode_sq.index], sector)[0]
     risk = popu * prob
