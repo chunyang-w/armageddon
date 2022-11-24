@@ -163,19 +163,15 @@ class Planet():
                 print("solving method {} not implemented yet.".format(backend))
                 print("Falling back to FE for now")
                 solver = self.solve_atmospheric_entry_FE
-        if dt >= 0.05:
+        if dt >= 0.01:
             solver(radius, velocity, angle,
-                init_altitude, 0.05, dt)
+                init_altitude, 0.01, dt)
+        elif dt < 0.01:
+            self.solve_atmospheric_entry_FE(radius, velocity, angle,
+                                            init_altitude, dt)
         else:
             solver(radius, velocity, angle,
                 init_altitude, dt, dt)
-            self.velocity = self.solver_velocity[:-1]
-            self.mass = self.solver_mass[:-1]
-            self.angle = self.solver_angle[:-1]
-            self.altitude = self.solver_altitude[:-1]
-            self.distance = self.solver_distance[:-1]
-            self.radius = self.solver_radius[:-1]
-            self.alltimestep = self.solver_alltimestep[:-1]
         if not radians:
             all_angle = [i/np.pi * 180 for i in self.angle]
         else:
@@ -319,11 +315,14 @@ class Planet():
             Y.append(eval(temp[1]))
 
         def tabular_density(x):
-
-            pressure = (1.225 - 9.910220744570666e-05*x + 1.0633480000486046e-09*x ** 2 + 4.098166536722918e-14*x**3+1.0285099346022191e-17*x**4 - 1.045342967336349e-21*x**5 + 4.396108172607025e-26 * \
-                x**6 - 1.0712304649951357e-30*x**7 + 1.657059541531033e-35*x**8 - 1.6597297898210513e-40*x**9 + \
-                1.0474179820376901e-45*x**10 - 3.7975400341113775e-51 * \
-                x**11 + 6.044604125297617e-57*x**12)
+            if x > 100e3:
+                return 0
+            if x > X[-1]:
+                pressure = (x - X[-1])/(100e3 - X[i-1]) * (0 - Y[-1]) + Y[-1]
+            for i in range(len(X)):
+                if X[i] >= x:
+                    break
+            pressure = (x - X[i-1])/(X[i] - X[i-1]) * (Y[i] - Y[i-1]) + Y[i-1]
 
             return pressure
         return tabular_density
@@ -376,15 +375,20 @@ class Planet():
         timestep = dt
         iter_num = 0
         acumulated_step = 0
-        aclist = []
         while True:
             ctheta, cr, cz, cv, cm, cx = self.RK4_helper(timestep)
-            newv = cv + self.solver_velocity[-1]
-            newm = cm + self.solver_mass[-1]
-            newal = cz + self.solver_altitude[-1]
-            newangle = ctheta + self.solver_angle[-1]
-            newdistance = cx + self.solver_distance[-1]
-            newradius = cr + self.solver_radius[-1]
+            old_velocity = self.solver_velocity[-1]
+            old_mass = self.solver_mass[-1]
+            old_altitude = self.solver_altitude[-1]
+            old_angle = self.solver_angle[-1]
+            old_distance = self.solver_distance[-1]
+            old_radius = self.solver_radius[-1]
+            newv = cv + old_velocity
+            newm = cm + old_mass
+            newal = cz + old_altitude
+            newangle = ctheta + old_angle
+            newdistance = cx + old_distance
+            newradius = cr + old_radius
             self.solver_velocity.append(newv)
             self.solver_mass.append(newm)
             self.solver_altitude.append(newal)
@@ -393,20 +397,14 @@ class Planet():
             self.solver_radius.append(newradius)
             self.solver_alltimestep.append(timestep + self.solver_alltimestep[-1])
             flag = np.isclose(acumulated_step + timestep, actualdt)
-            # print(111)
             if acumulated_step + timestep >= actualdt or flag:
-                # print(acumulated_step + timestep, actualdt)
-                # if iter_num >=0:
-                #     print(self.alltimestep)
-                #     print(self.solver_alltimestep)
-                #     quit()
                 rate = (actualdt - acumulated_step)/timestep
-                output_v = rate*cv + self.solver_velocity[-1]
-                output_m = rate*cm + self.solver_mass[-1]
-                output_al = rate*cz + self.solver_altitude[-1]
-                output_angle = rate*ctheta + self.solver_angle[-1]
-                output_dis = rate*cx + self.solver_distance[-1]
-                output_rad = rate*cr + self.solver_radius[-1]
+                output_v = rate*cv + old_velocity
+                output_m = rate*cm + old_mass
+                output_al = rate*cz + old_altitude
+                output_angle = rate*ctheta + old_angle
+                output_dis = rate*cx + old_distance
+                output_rad = rate*cr + old_radius
                 self.velocity.append(output_v)
                 self.mass.append(output_m)
                 self.altitude.append(output_al)
@@ -421,8 +419,6 @@ class Planet():
             acumulated_step += timestep
             if flag:
                 acumulated_step = 0
-            aclist.append(acumulated_step)
-        # print(aclist)
 
     def RK4_helper(self, timestep):
         """
