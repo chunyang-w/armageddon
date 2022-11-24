@@ -170,7 +170,7 @@ class Planet():
             solver(radius, velocity, angle,
                    init_altitude, tempdt, dt)
         else:
-            self.solve_atmospheric_entry_RK4(radius, velocity, angle,
+            self.solve_atmospheric_entry_FE(radius, velocity, angle,
                                             init_altitude, dt, dt)
         if not radians:
             all_angle = [i/np.pi * 180 for i in self.angle]

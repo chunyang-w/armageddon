@@ -1,5 +1,5 @@
 import folium
-import numpy as np
+# import numpy as np
 
 
 def plot_circle(lat, lon, radius, map=None, **kwargs):
@@ -41,7 +41,8 @@ def plot_circle(lat, lon, radius, map=None, **kwargs):
 
 def damage_map(blat, blon, damrad, lat, lon):
     """
-    Plot circles on a map as needed (creating a new folium map instance if necessary).
+    Plot circles on a map as needed
+    (creating a new folium map instance if necessary).
 
     Parameters
     ----------
@@ -70,7 +71,10 @@ def damage_map(blat, blon, damrad, lat, lon):
                    'outcome': 'Airburst'}
     >>> lat = 52.79
     >>> lon = -2.95
-    >>> blat, blon, damrad = armageddon.damage_zones(outcome, lat, lon, 135, pressures=[1e3, 3.5e3, 27e3, 43e3])
+    >>> blat, blon, damrad = armageddon.damage_zones(\
+                                        outcome, lat, lon,\
+                                        135,\
+                                        pressures=[1e3, 3.5e3, 27e3, 43e3])
     >>> armageddon.damage_map(blat, blon, damrad, lat, lon)
     """
     damrad = damrad[::-1]
