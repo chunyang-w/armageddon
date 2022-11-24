@@ -334,7 +334,9 @@ class Planet():
             self.distance.append(cx + self.distance[-1])
             self.radius.append(cr + self.radius[-1])
             self.alltimestep.append(timestep + self.alltimestep[-1])
-            if self.altitude[-1] <= 0 or self.mass[-1] <= 0:
+            if (self.altitude[-1] <= 0 or self.mass[-1] <= 0 or
+                self.radius[-1] <= 0 or self.velocity[-1] <= 0 or
+                self.altitude[-1] >= init_altitude):
                 break
 
     def RK4_helper(self, timestep):
@@ -473,5 +475,7 @@ class Planet():
             self.distance.append(dxdt * timestep + self.distance[-1])
             self.radius.append(drdt * timestep + self.radius[-1])
             self.alltimestep.append(timestep + self.alltimestep[-1])
-            if self.altitude[-1] <= 0 or self.mass[-1] <= 0:
+            if (self.altitude[-1] <= 0 or self.mass[-1] <= 0 or
+                self.radius[-1] <= 0 or self.velocity[-1] <= 0 or
+                self.altitude[-1] >= init_altitude):
                 break
