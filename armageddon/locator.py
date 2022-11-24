@@ -184,7 +184,7 @@ class PostcodeLocator(object):
                     nested_pc.append(0)
                 else:
                     if (sector is True):
-                        nested_pc.append(target[col].values[0])
+                        nested_pc.append(float(target[col].values[0]))
                     else:
                         outcode = outcode.strip()
                         outcode = outcode + ' ' * (4 - len(outcode))
