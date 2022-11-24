@@ -163,7 +163,14 @@ class Planet():
                 print("solving method {} not implemented yet.".format(backend))
                 print("Falling back to FE for now")
                 solver = self.solve_atmospheric_entry_FE
-        solver(radius, velocity, angle, init_altitude, dt)
+        if dt >= 0.05:
+            stepmul = round(dt/0.05)
+            solver(radius, velocity, angle,
+                init_altitude, 0.05, stepmul)
+        else:
+            stepmul = 1
+            solver(radius, velocity, angle,
+                init_altitude, dt, stepmul)
         if not radians:
             all_angle = [i/np.pi * 180 for i in self.angle]
         else:
@@ -287,7 +294,7 @@ class Planet():
 
     def solve_atmospheric_entry_RK4(
             self, radius, velocity, angle,
-            init_altitude, dt):
+            init_altitude, dt, stepmul):
         """
         Solve the system of differential equations for a given impact scenario
         using RK4 method
@@ -325,19 +332,27 @@ class Planet():
         self.radius = [radius]
         timestep = dt
         self.alltimestep = [0]
+        iter_num = 0
         while True:
-            ctheta, cr, cz, cv, cm, cx = self.RK4_helper(dt)
-            self.velocity.append(cv + self.velocity[-1])
-            self.mass.append(cm + self.mass[-1])
-            self.altitude.append(cz + self.altitude[-1])
-            self.angle.append(ctheta + self.angle[-1])
-            self.distance.append(cx + self.distance[-1])
-            self.radius.append(cr + self.radius[-1])
-            self.alltimestep.append(timestep + self.alltimestep[-1])
-            if (self.altitude[-1] <= 0 or self.mass[-1] <= 0 or
-                self.radius[-1] <= 0 or self.velocity[-1] <= 0 or
-                self.altitude[-1] >= init_altitude):
+            ctheta, cr, cz, cv, cm, cx = self.RK4_helper(timestep)
+            newv = cv + self.velocity[-1]
+            newm = cm + self.mass[-1]
+            newal = cz + self.altitude[-1]
+            newangle = ctheta + self.angle[-1]
+            newdistance = cx + self.distance[-1]
+            newradius = cr + self.radius[-1]
+            
+            if self.stopping(newv, newm, newal, newradius):
                 break
+            if iter_num % stepmul == 0:
+                self.velocity.append(newv)
+                self.mass.append(newm)
+                self.altitude.append(newal)
+                self.angle.append(newangle)
+                self.distance.append(newdistance)
+                self.radius.append(newradius)
+                self.alltimestep.append(actual_timestep + self.alltimestep[-1])
+            iter_num += 1
 
     def RK4_helper(self, timestep):
         """
@@ -479,3 +494,11 @@ class Planet():
                 self.radius[-1] <= 0 or self.velocity[-1] <= 0 or
                 self.altitude[-1] >= init_altitude):
                 break
+
+    def stopping(self, newv, newm, newal, newradius):
+        if (newal <= 0 or newm <= 0 or
+                newradius <= 0 or newv <= 0 or
+                newal >= self.altitude[0]):
+            return True
+        else:
+            return False
