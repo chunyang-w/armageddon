@@ -50,6 +50,7 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     pressures = np.array(pressures)
     lat = np.deg2rad(lat)
     lon = np.deg2rad(lon)
+    bearing = np.deg2rad(bearing)
     damrad = np.array([])
 
     sin_blat = ((sin(lat) * cos(r_h / Rp)) +
