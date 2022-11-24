@@ -25,6 +25,7 @@ def get_sector_code(code):
     code = code[:-1] + ' ' + code[-1]
     return code
 
+
 def great_circle_distance(latlon1, latlon2):
     """
     Calculate the great circle distance (in metres) between pairs of
@@ -76,10 +77,13 @@ def great_circle_distance(latlon1, latlon2):
 class PostcodeLocator(object):
     """Class to interact with a postcode database file."""
 
-    def __init__(self, postcode_file=os.sep.join((os.path.dirname(__file__), '..',
-                                                  'resources',
-                                                  'full_postcodes.csv')),
-                 census_file=os.sep.join((os.path.dirname(__file__), '..',
+    def __init__(self,
+                 postcode_file=os.sep.join((os.path.dirname(__file__),
+                                            '..',
+                                            'resources',
+                                            'full_postcodes.csv')),
+                 census_file=os.sep.join((os.path.dirname(__file__),
+                                          '..',
                                           'resources',
                                           'population_by_postcode_sector.csv')),
                  norm=great_circle_distance):
