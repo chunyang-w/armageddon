@@ -1,0 +1,9 @@
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{\numberline {1}Synopsis:}{1}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Problem definition}{3}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Equations of motion for a rigid asteroid}{3}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Asteroid break\sphinxhyphen {}up and deformation}{3}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Airblast damage}{4}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Additional sections}{4}{section.2.4}%
+\contentsline {chapter}{\numberline {3}Function API}{5}{chapter.3}%
+\contentsline {chapter}{Python Module Index}{13}{section*.22}%
