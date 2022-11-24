@@ -3,10 +3,10 @@ name: create anaconda environment
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 jobs:
   pytest:
