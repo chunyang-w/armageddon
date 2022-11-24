@@ -35,7 +35,7 @@ def great_circle_distance(latlon1, latlon2):
     >>> import numpy
     >>> fmt = lambda x: numpy.format_float_scientific(x, precision=3)
     >>> with numpy.printoptions(formatter={'all': fmt}):
-    >>> print(great_circle_distance([[54.0, 0.0], [55, 0.0]], [55, 1.0]))
+        print(great_circle_distance([[54.0, 0.0], [55, 0.0]], [55, 1.0]))
     [[128580.53670808]
      [ 63778.24657484]]
     """
