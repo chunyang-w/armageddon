@@ -1,0 +1,52 @@
+name: sphinx-pdf
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  pytest:
+    name: unit testing
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout armageddon
+      uses: actions/checkout@v2
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.9
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -e .
+        pip install -r requirements.txt
+    - name: Install texlive
+      run: |
+        sudo apt install texlive
+        sudo apt-get install -y latexmk
+        sudo apt-get install -y texlive-latex-extra
+    - name: Build sphinx documentation
+      run: |
+        sphinx-build -b latex docs .
+        pdflatex --output-directory docs armageddon.tex
+        cd ../..
+    - name: commit changes
+      run: |
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add docs/armageddon.pdf
+        git commit -m "update pdf through wrokflow"
+        git remote
+        
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}

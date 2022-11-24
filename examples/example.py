@@ -1,5 +1,5 @@
 import armageddon
-
+import numpy as np
 #######################
 #   Airburst Solver   #
 #######################
