@@ -40,7 +40,40 @@ def plot_circle(lat, lon, radius, map=None, **kwargs):
 
 
 def damage_map(blat, blon, damrad, lat, lon):
-    colors = ['yellow', 'blue', 'white']
+    """
+    Plot circles on a map as needed (creating a new folium map instance if necessary).
+
+    Parameters
+    ----------
+
+    blat: float
+        latitude of circle to plot (degrees)
+    blon: float
+        longitude of circle to plot (degrees)
+    damrad: arraylike
+    lat: float
+        the entry point of the meteorite as a latitude (degrees)
+    lon: float
+        the entry point of the meteorite as a longitude (degrees)
+
+    Returns
+    -------
+
+    Folium map object
+
+    Examples
+    --------
+
+    >>> import folium
+    >>> outcome = {'burst_altitude': 8e3, 'burst_energy': 7e3,\
+                   'burst_distance': 90e3, 'burst_peak_dedz': 1e3,\
+                   'outcome': 'Airburst'}
+    >>> lat = 52.79
+    >>> lon = -2.95
+    >>> blat, blon, damrad = armageddon.damage_zones(outcome, lat, lon, 135, pressures=[1e3, 3.5e3, 27e3, 43e3])
+    >>> armageddon.damage_map(blat, blon, damrad, lat, lon)
+    """
+    damrad = damrad[::-1]
     for rad_index in range(len(damrad)):
         if rad_index == 0:
             map = plot_circle(
@@ -55,7 +88,6 @@ def damage_map(blat, blon, damrad, lat, lon):
             map = plot_circle(
                 blat, blon,
                 damrad[rad_index],
-                map,
-                colors=np.roll(colors, rad_index)
+                map
             )
     return map
