@@ -25,7 +25,7 @@ pressures2 = [1e2, 5e2, 1e3]
          len(pressures1)),
         (outcome2, 100, 65, 30, pressures2, 79.9299029, -115.2311903,
          len(pressures2)),
-         (outcome2, 120, 70, 20, pressures2, 59.9240159, 110.0551768,
+         (outcome2, 120, 70, 20, pressures2, 59.9240159, -110.0551768,
          len(pressures2))
     ]
 )
@@ -38,7 +38,7 @@ def test_damage_zones_coord(outcome, lat, lon, bearing,
     if expected_lon > 90:
         assert int(blon) == int(180 - expected_lon)
     elif expected_lon < -90:
-        assert int(blon) == 180 + int(expected_lon)
+        assert int(blon) == int(180 + expected_lon)
     else:
         assert int(blon) == int(expected_lon)
     assert len(damrad) == shape_expected_damrad
@@ -80,3 +80,4 @@ def test_impact_risk():
     highest_val = highest_val_df['Variable: All usual residents; measures: Value'].max()
     assert (impact_risk_df['risk'].index >= 0).all()
     assert (impact_risk_df['risk'].index <= highest_val).all()
+    assert type(impact_risk_df) == pd.DataFrame

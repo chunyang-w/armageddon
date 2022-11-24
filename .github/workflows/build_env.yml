@@ -1,0 +1,41 @@
+name: create environment
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  pytest:
+    name: unit testing
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout simple_functions
+      uses: actions/checkout@v2
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.9
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -e .
+        pip install -r requirements.txt
+        python download_data.py
+  
+    - name: create environment
+      run: |
+        conda env create -f environment.yml
+        conda init zsh
+        source ~/.zshrc
+        conda activate ACS
+
+    - name: Test with pytest
+      run: |
+        pytest tests/

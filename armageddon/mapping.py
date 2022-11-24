@@ -1,4 +1,5 @@
 import folium
+import numpy as np
 
 
 def plot_circle(lat, lon, radius, map=None, **kwargs):
@@ -38,18 +39,22 @@ def plot_circle(lat, lon, radius, map=None, **kwargs):
     return map
 
 
-def damage_map(blat, blon, damrad):
+def damage_map(blat, blon, damrad, lat, lon):
+    colors = ['yellow', 'blue', 'white']
     for rad_index in range(len(damrad)):
         if rad_index == 0:
             map = plot_circle(
                 blat, blon,
                 damrad[rad_index],
-                map=None
+                map=None,
+                color='red'
             )
+            folium.PolyLine([[lat, lon], [blat, blon]], color='black').add_to(map)
         else:
             map = plot_circle(
                 blat, blon,
                 damrad[rad_index],
-                map
+                map,
+                colors=np.roll(colors, rad_index)
             )
     return map

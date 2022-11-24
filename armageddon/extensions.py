@@ -172,7 +172,7 @@ def plot_against(radius, strength, density=3300, angle=18.3, velocity=19200,
     simresult = planet_instance.solve_atmospheric_entry(
         radius, velocity, density, strength, angle,
         init_altitude=init_altitude,
-        dt=dt, radians=radians, backend=backend)
+        dt=dt, radians=radians, backend=backend, hard=True)
     energy = planet_instance.calculate_energy(simresult)
     range_of_interest = [max(data2['h']), min(data2['h'])]
     temp_energy = energy.loc[energy['altitude'] <= range_of_interest[0]]
@@ -254,7 +254,7 @@ def getfunctionvalue(planet_instance, radius, velocity, density, strength,
                 density, strength, angle,
                 init_altitude=init_altitude,
                 dt=dt, radians=radians,
-                backend=backend)
+                backend=backend, hard=True)
     energy = planet_instance.calculate_energy(result)
     outcome = planet_instance.analyse_outcome(energy)
     peak = outcome['burst_peak_dedz']

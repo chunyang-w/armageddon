@@ -34,9 +34,10 @@ def great_circle_distance(latlon1, latlon2):
     --------
     >>> import numpy
     >>> fmt = lambda x: numpy.format_float_scientific(x, precision=3)
-    >>> with numpy.printoptions(formatter={'all': fmt}):
-    >>> print(great_circle_distance([[54.0, 0.0], [55, 0.0]], [55, 1.0]))
-    [1.286e+05 6.378e+04]
+    >>> with numpy.printoptions(formatter={'all': fmt}):\
+    print(great_circle_distance([[54.0, 0.0], [55, 0.0]], [55, 1.0]))
+    [[1.286e+05]
+     [6.378e+04]]
     """
     R_p = 6371e3
     latlon1 = np.array(latlon1) * np.pi / 180
@@ -91,6 +92,7 @@ class PostcodeLocator(object):
         self.sector_sq = self.postcode_df.value_counts('Sector_Postcode')
         self.norm = norm
 
+
     def get_postcodes_by_radius(self, X, radii, sector=False):
         """
         Return (unit or sector) postcodes within specific distances of
@@ -111,8 +113,21 @@ class PostcodeLocator(object):
         Examples
         --------
         >>> locator = PostcodeLocator('resources/full_postcodes.csv', 'resources/population_by_postcode_sector.csv')
-        >>> locator.get_postcodes_by_radius((51.4981, -0.1773), [0.13e3])
-        >>> locator.get_postcodes_by_radius((51.4981, -0.1773), [0.4e3, 0.2e3], True)
+        >>> postcodes = locator.get_postcodes_by_radius((51.4981, -0.1773), [0.13e3])
+        >>> postcode_dictionaries = [dict.fromkeys(postcodes[i], "risk") for i in range(len(postcodes))]
+        >>> ans1 = [{'SW7 5HG': 'risk','SW7 2BU': 'risk','SW7 5HQ': 'risk',\
+                    'SW7 2BT': 'risk','SW7 5HF': 'risk','SW7 2DD': 'risk',\
+                    'SW7 2AZ': 'risk'}]
+        >>> postcode_dictionaries == ans1
+        True
+        >>> postcodes = locator.get_postcodes_by_radius((51.4981, -0.1773), [0.4e3, 0.2e3], True)
+        >>> postcode_dictionaries = [dict.fromkeys(postcodes[i], "risk") for i in range(len(postcodes))]
+        >>> ans2 = [{'SW7 4': 'risk','SW7 5': 'risk','SW7 3': 'risk',\
+                    'SW7 1': 'risk','SW7 9': 'risk', 'SW7 2': 'risk'},\
+                   {'SW7 4': 'risk','SW7 5': 'risk','SW7 3': 'risk',\
+                    'SW7 1': 'risk','SW7 9': 'risk','SW7 2': 'risk'}]
+        >>> postcode_dictionaries == ans2
+        True
         """
         place_list = []
         selector = 'Sector_Postcode' if sector is True else 'Postcode'
@@ -128,10 +143,10 @@ class PostcodeLocator(object):
             ))
         return place_list
 
+
     def get_postcode_count(self, sec_code):
         return self.sector_sq[sec_code]
-        return self.postcode_df['Postcode'].str.contains(
-            sec_code, na=False).sum()
+
 
     def get_population_of_postcode(self, postcodes, sector=False):
         """
@@ -180,13 +195,13 @@ class PostcodeLocator(object):
                     nested_pc.append(0)
                 else:
                     if (sector is True):
-                        nested_pc.append(target[col].values[0])
+                        nested_pc.append(float(target[col].values[0]))
                     else:
                         outcode = outcode.strip()
                         outcode = outcode + ' ' * (4 - len(outcode))
                         sec_code = outcode + sec_digit
                         pc_count = self.get_postcode_count(sec_code)
-                        nested_pc.append(round(
-                            target[col].values[0] / pc_count))
+                        nested_pc.append(float(round(
+                            target[col].values[0] / pc_count)))
             global_pc.append(nested_pc)
         return global_pc
