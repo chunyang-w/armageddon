@@ -69,7 +69,7 @@ def test_planet_signature(armageddon):
     planet = armageddon.Planet(**inputs)
 
     # call by position
-    # planet = armageddon.Planet(*inputs.values())
+    planet = armageddon.Planet(*inputs.values())
 
 
 def test_attributes(planet):
@@ -129,19 +129,27 @@ def test_damage_zones(armageddon):
     assert len(damrad) == 2
 
 
-@mark.xfail
+# @mark.xfail
 def test_great_circle_distance(armageddon):
 
     pnts1 = np.array([[54.0, 0.0], [55.0, 1.0], [54.2, -3.0]])
     pnts2 = np.array([[55.0, 1.0], [56.0, -2.1], [54.001, -0.003]])
 
-    data = np.array([[1.28580537e+05, 2.59579735e+05, 2.25409117e+02],
-                    [0.00000000e+00, 2.24656571e+05, 1.28581437e+05],
+    pnts3 = np.array([[54.0, 0.0], [55.0, 1.0], [54.2, -3.0]])
+    pnts4 = np.array([[66.0, 1.5], [56.0, -3.1]])
+
+    data = np.array([[1.28580537e+05, 2.59579735e+05, 2.25409106e+02],
+                    [9.49352980e-02, 2.24656571e+05, 1.28581437e+05],
                     [2.72529953e+05, 2.08175028e+05, 1.96640630e+05]])
+    
+    data2 = np.array([[1336847.19841416, 297512.21050142],
+                      [1223440.76045278, 281091.18822609],
+                      [1334757.37253881, 200251.89330543]])
 
     dist = armageddon.great_circle_distance(pnts1, pnts2)
-
+    dist2 = armageddon.great_circle_distance(pnts3, pnts4)
     assert np.allclose(data, dist, rtol=1.0e-4)
+    assert np.allclose(data2, dist2, rtol=1.0e-4)
 
 
 def test_locator_postcodes(loc):
