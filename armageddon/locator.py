@@ -92,6 +92,7 @@ class PostcodeLocator(object):
         self.sector_sq = self.postcode_df.value_counts('Sector_Postcode')
         self.norm = norm
 
+
     def get_postcodes_by_radius(self, X, radii, sector=False):
         """
         Return (unit or sector) postcodes within specific distances of
@@ -113,7 +114,9 @@ class PostcodeLocator(object):
         --------
         >>> locator = PostcodeLocator('resources/full_postcodes.csv', 'resources/population_by_postcode_sector.csv')
         >>> locator.get_postcodes_by_radius((51.4981, -0.1773), [0.13e3])
+        [['SW7 5HF', 'SW7 5HQ', 'SW7 5HG', 'SW7 2BU', 'SW7 2DD', 'SW7 2AZ', 'SW7 2BT']]
         >>> locator.get_postcodes_by_radius((51.4981, -0.1773), [0.4e3, 0.2e3], True)
+        [['SW7 2', 'SW7 4', 'SW7 5', 'SW7 9', 'SW7 1', 'SW7 3'], ['SW7 2', 'SW7 4', 'SW7 5', 'SW7 9', 'SW7 1', 'SW7 3']]
         """
         place_list = []
         selector = 'Sector_Postcode' if sector is True else 'Postcode'
@@ -129,10 +132,10 @@ class PostcodeLocator(object):
             ))
         return place_list
 
+
     def get_postcode_count(self, sec_code):
         return self.sector_sq[sec_code]
-        return self.postcode_df['Postcode'].str.contains(
-            sec_code, na=False).sum()
+
 
     def get_population_of_postcode(self, postcodes, sector=False):
         """
