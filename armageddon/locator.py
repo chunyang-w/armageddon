@@ -187,7 +187,7 @@ class PostcodeLocator(object):
                         outcode = outcode + ' ' * (4 - len(outcode))
                         sec_code = outcode + sec_digit
                         pc_count = self.get_postcode_count(sec_code)
-                        nested_pc.append(round(
-                            target[col].values[0] / pc_count))
+                        nested_pc.append(float(round(
+                            target[col].values[0] / pc_count)))
             global_pc.append(nested_pc)
         return global_pc
