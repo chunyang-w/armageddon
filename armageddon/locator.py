@@ -135,10 +135,7 @@ class PostcodeLocator(object):
 
     def get_postcode_count(self, sec_code):
         return self.sector_sq[sec_code]
-<<<<<<< HEAD
 
-=======
->>>>>>> d8e47007daa3636dcd3c6400c656738f89ef4528
 
     def get_population_of_postcode(self, postcodes, sector=False):
         """
@@ -187,7 +184,7 @@ class PostcodeLocator(object):
                     nested_pc.append(0)
                 else:
                     if (sector is True):
-                        nested_pc.append(float(target[col].values[0]))
+                        nested_pc.append(target[col].values[0])
                     else:
                         outcode = outcode.strip()
                         outcode = outcode + ' ' * (4 - len(outcode))
