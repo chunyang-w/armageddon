@@ -76,7 +76,7 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     discriminant = np.sqrt((3.24e14 + (1.256e12 * pressures)))
     pre_sol = (((((-1.8e7 + discriminant) / 6.28e11)**(-2/1.3)) *
                 (Ek**(2/3))) - (zb**2))
-    initial = np.sqrt(pre_sol)
+    initial = np.sqrt(np.abs(pre_sol))
     damrad = np.zeros(len(pressures))
 
     for index in range(len(pressures)):
