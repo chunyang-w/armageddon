@@ -134,10 +134,13 @@ class Planet():
 
         backend : str, optional
             Which solving method to use. Default='FE'
+        
+        hard : bool, optional
+            if True, the solver will use the passed in stepsize.
 
         Returns
         -------
-        Result : DataFrame
+        result : DataFrame
             A pandas dataframe containing the solution to the system.
             Includes the following columns:
             'velocity', 'mass', 'angle', 'altitude',
@@ -204,7 +207,9 @@ class Planet():
             A pandas dataframe with columns for the velocity, mass, angle,
             altitude, horizontal distance and radius as a function of time
 
-        Returns : DataFrame
+        Returns
+        -------
+        result : DataFrame
             Returns the dataframe with additional column ``dedz`` which is the
             kinetic energy lost per unit altitude
 
