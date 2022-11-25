@@ -67,6 +67,9 @@ Within the example folder, see `example.py`:
 python examples/example.py
 ```
 
+A demonstration of the asteroid impact risk tool with a scenario of a large asteroid colliding with Earth over the midlands of the UK.
+See [BREAKING_NEWS.ipynb](https://github.com/ese-msc-2022/acs-armageddon-Dimorphos/blob/main/examples/BREAKING_NEWS.ipynb)
+
 ## Automated testing
 
 To run the pytest test suite, from the base directory run
