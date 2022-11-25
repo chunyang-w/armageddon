@@ -318,14 +318,11 @@ def searchstrength(planet_instance, radius, velocity, density,
 
         Returns
         -------
-        peak: float
-            The peak dedz value of the simulated solution
+        best_strength: float
+            best strength that minimize the distance
 
-        alti: float
-            The altitude where the peak dedz of the simulated solution happens
-
-        dist: float
-            The distance between the simulation peak and true peak
+        best_dist: float
+            The minimum distance between the simulation peak and true peak
     """
     right = strengthrange[1]
     left = strengthrange[0]
