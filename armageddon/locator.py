@@ -28,7 +28,7 @@ def great_circle_distance(latlon1, latlon2):
         latitudes and longitudes of second point (as [m, 2] array for m points)
     Returns
     -------
-    numpy.ndarray
+    distance: numpy.ndarray
         Distance in metres between each pair of points (as an n x m array)
     Examples
     --------
@@ -165,7 +165,7 @@ class PostcodeLocator(object):
             otherwise returns populations for postcode units
         Returns
         -------
-        list of lists
+        global_pc: list of lists
             Contains the populations of input postcode units or sectors
         Examples
         --------

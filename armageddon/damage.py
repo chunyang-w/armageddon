@@ -173,8 +173,8 @@ def impact_risk(planet, means=fiducial_means, stdevs=fiducial_stdevs,
     popu = locator.get_population_of_postcode([postcode_sq.index], sector)[0]
     risk = popu * prob
     col = 'postcode sector' if sector is True else 'postcode'
-    df = pd.DataFrame({
+    risk = pd.DataFrame({
         col: postcode_sq.index,
         'risk': risk
     })
-    return df
+    return risk

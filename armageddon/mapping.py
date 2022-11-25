@@ -20,7 +20,7 @@ def plot_circle(lat, lon, radius, map=None, **kwargs):
     Returns
     -------
 
-    Folium map object
+    map: Folium map object
 
     Examples
     --------
@@ -59,7 +59,7 @@ def damage_map(blat, blon, damrad, lat, lon):
     Returns
     -------
 
-    Folium map object
+    map: Folium map object
 
     Examples
     --------
