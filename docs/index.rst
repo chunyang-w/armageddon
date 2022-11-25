@@ -40,10 +40,7 @@ governed by a coupled set of ordinary differential equations:
 
 .. math::
    :nowrap:
-<<<<<<< HEAD
-
-=======
->>>>>>> main
+   
    \begin{math}
    \begin{aligned} 
    \frac{dv}{dt} & = \frac{-C_D\rho_a A v^2}{2 m} + g \sin \theta \\
