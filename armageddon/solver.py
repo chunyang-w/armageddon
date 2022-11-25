@@ -147,6 +147,7 @@ class Planet():
         # Enter your code here to solve the differential equations
         if not radians:
             angle = angle/180 * np.pi
+        self.potential_type = "A"
         self.strength = strength
         self.density = density
         self.burstpoint = -1
@@ -176,13 +177,24 @@ class Planet():
             all_angle = [i/np.pi * 180 for i in self.angle]
         else:
             all_angle = self.angle
-        return pd.DataFrame({'velocity': self.velocity,
-                             'mass': self.mass,
-                             'angle': all_angle,
-                             'altitude': self.altitude,
-                             'distance': self.distance,
-                             'radius': self.radius,
-                             'time': self.alltimestep})
+        result = pd.DataFrame({'velocity': self.velocity,
+                               'mass': self.mass,
+                               'angle': all_angle,
+                               'altitude': self.altitude,
+                               'distance': self.distance,
+                               'radius': self.radius,
+                               'time': self.alltimestep})
+        n = len(result)
+        print(result)
+        if self.stopping(
+                result.loc[n-1, "velocity"],
+                result.loc[n-1, "mass"],
+                result.loc[n-1, "altitude"],
+                result.loc[n-1, 'radius']):
+            if result.loc[n-1, "altitude"] <= 0:
+                self.potential_type = "C"
+            result = result.iloc[:-1, :]
+        return result
 
     def calculate_energy(self, result):
         """
@@ -207,7 +219,8 @@ class Planet():
         mass = result["mass"]
         velocity = result["velocity"]
         altitude = np.array(result["altitude"])
-        dedz = np.array(0.5 * mass * velocity/(4.184*10**9) * velocity)
+        dedz = np.array(0.5 * mass / (10**5) * velocity /
+                        (10**4) * velocity / 4.184)
         temp = (dedz[1:] - dedz[:-1]) / (altitude[:-1] - altitude[1:])
         temp = temp
         temp = np.insert(temp, 0, 0)
@@ -218,7 +231,6 @@ class Planet():
     def analyse_outcome(self, result):
         """
         Inspect a pre-found solution to calculate the impact and airburst stats
-
         Parameters
         ----------
         result : DataFrame
@@ -242,7 +254,7 @@ class Planet():
         burstenergy = (0.5 * result["mass"][burstidx]
                        * result["velocity"][burstidx]**2 / (4.184*10**12))
         outcome = "Airburst"
-        if burstidx == len(result) - 1:
+        if burstidx == len(result) - 1 and self.potential_type == "C":
             outcome = "Cratering"
             burstenergy = max(burstenergy, initial_energy - burstenergy)
             burst_altitude = 0
@@ -331,57 +343,73 @@ class Planet():
         self.altitude = [init_altitude]
         self.distance = [0]
         self.radius = [radius]
-        self.solver_velocity = [velocity]
-        self.solver_mass = [4/3 * np.pi * radius**3 * self.density]
-        self.solver_angle = [angle]
-        self.solver_altitude = [init_altitude]
-        self.solver_distance = [0]
-        self.solver_radius = [radius]
+        self.solver_param = np.array([angle,
+                                      radius,
+                                      init_altitude,
+                                      velocity,
+                                      4/3 * np.pi * radius**3 * self.density,
+                                      0])
+        # self.solver_velocity = [velocity]
+        # self.solver_mass = [4/3 * np.pi * radius**3 * self.density]
+        # self.solver_angle = [angle]
+        # self.solver_altitude = [init_altitude]
+        # self.solver_distance = [0]
+        # self.solver_radius = [radius]
+        # self.solver_alltimestep = [0]
         self.alltimestep = [0]
-        self.solver_alltimestep = [0]
         timestep = dt
         iter_num = 0
         acumulated_step = 0
         while True:
-            ctheta, cr, cz, cv, cm, cx = self.RK4_helper(timestep)
-            old_velocity = self.solver_velocity[-1]
-            old_mass = self.solver_mass[-1]
-            old_altitude = self.solver_altitude[-1]
-            old_angle = self.solver_angle[-1]
-            old_distance = self.solver_distance[-1]
-            old_radius = self.solver_radius[-1]
-            newv = cv + old_velocity
-            newm = cm + old_mass
-            newal = cz + old_altitude
-            newangle = ctheta + old_angle
-            newdistance = cx + old_distance
-            newradius = cr + old_radius
-            self.solver_velocity.append(newv)
-            self.solver_mass.append(newm)
-            self.solver_altitude.append(newal)
-            self.solver_angle.append(newangle)
-            self.solver_distance.append(newdistance)
-            self.solver_radius.append(newradius)
-            self.solver_alltimestep.append(
-                timestep + self.solver_alltimestep[-1])
+            cpara = self.RK4_helper(timestep)
+            # ctheta, cr, cz, cv, cm, cx = self.RK4_helper(timestep)
+            # old_velocity = self.solver_velocity[-1]
+            # old_mass = self.solver_mass[-1]
+            # old_altitude = self.solver_altitude[-1]
+            # old_angle = self.solver_angle[-1]
+            # old_distance = self.solver_distance[-1]
+            # old_radius = self.solver_radius[-1]
+            # old_velocity = self.solver_param[3]
+            # old_mass = self.solver_param[4]
+            # old_altitude = self.solver_param[2]
+            # old_angle = self.solver_param[0]
+            # old_distance = self.solver_param[5]
+            # old_radius = self.solver_param[1]
+            # newv = cv + old_velocity
+            # newm = cm + old_mass
+            # newal = cz + old_altitude
+            # newangle = ctheta + old_angle
+            # newdistance = cx + old_distance
+            # newradius = cr + old_radius
+            # self.solver_velocity.append(newv)
+            # self.solver_mass.append(newm)
+            # self.solver_altitude.append(newal)
+            # self.solver_angle.append(newangle)
+            # self.solver_distance.append(newdistance)
+            # self.solver_radius.append(newradius)
+            # self.solver_alltimestep.append(
+            #     timestep + self.solver_alltimestep[-1])
             flag = np.isclose(acumulated_step + timestep, actualdt)
             if acumulated_step + timestep >= actualdt or flag:
                 rate = (actualdt - acumulated_step)/timestep
-                output_v = rate*cv + old_velocity
-                output_m = rate*cm + old_mass
-                output_al = rate*cz + old_altitude
-                output_angle = rate*ctheta + old_angle
-                output_dis = rate*cx + old_distance
-                output_rad = rate*cr + old_radius
-                self.velocity.append(output_v)
-                self.mass.append(output_m)
-                self.altitude.append(output_al)
-                self.angle.append(output_angle)
-                self.distance.append(output_dis)
-                self.radius.append(output_rad)
+                # output_v = rate*cv + old_velocity
+                # output_m = rate*cm + old_mass
+                # output_al = rate*cz + old_altitude
+                # output_angle = rate*ctheta + old_angle
+                # output_dis = rate*cx + old_distance
+                # output_rad = rate*cr + old_radius
+                output_para = rate * cpara + self.solver_param
+                self.angle.append(output_para[0])
+                self.radius.append(output_para[1])
+                self.altitude.append(output_para[2])
+                self.velocity.append(output_para[3])
+                self.mass.append(output_para[4])
+                self.distance.append(output_para[5])
                 self.alltimestep.append(actualdt + self.alltimestep[-1])
                 acumulated_step -= actualdt
-            if self.stopping(newv, newm, newal, newradius):
+            self.solver_param += cpara
+            if self.stopping(self.solver_param[3], self.solver_param[4],
+                             self.solver_param[2], self.solver_param[1]):
                 break
             iter_num += 1
             acumulated_step += timestep
@@ -405,12 +433,13 @@ class Planet():
             'angle', 'radius', 'altitude',
             'velocity', 'mass', 'distance'
         """
-        variables = np.array([self.solver_angle[-1],
-                              self.solver_radius[-1],
-                              self.solver_altitude[-1],
-                              self.solver_velocity[-1],
-                              self.solver_mass[-1],
-                              self.solver_distance[-1]])
+        # variables = np.array([self.solver_angle[-1],
+        #                       self.solver_radius[-1],
+        #                       self.solver_altitude[-1],
+        #                       self.solver_velocity[-1],
+        #                       self.solver_mass[-1],
+        #                       self.solver_distance[-1]])
+        variables = self.solver_param
         k1 = self.calculator_rk4(variables)
         k2 = self.calculator_rk4(variables + 0.5 * timestep * k1)
         k3 = self.calculator_rk4(variables + 0.5 * timestep * k2)
