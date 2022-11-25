@@ -169,7 +169,3 @@ Function API
 .. automodule:: extensions
   :members: findstrengthradius, plot_against, getfunctionvalue, searchstrength
   :imported-members: findstrengthradius, plot_against, getfunctionvalue, searchstrength
-<<<<<<< HEAD
-
-=======
->>>>>>> main
