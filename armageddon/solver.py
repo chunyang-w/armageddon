@@ -185,7 +185,6 @@ class Planet():
                                'radius': self.radius,
                                'time': self.alltimestep})
         n = len(result)
-        print(result)
         if self.stopping(
                 result.loc[n-1, "velocity"],
                 result.loc[n-1, "mass"],
