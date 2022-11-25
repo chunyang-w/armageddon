@@ -129,7 +129,6 @@ def test_damage_zones(armageddon):
     assert len(damrad) == 2
 
 
-@mark.xfail
 def test_great_circle_distance(armageddon):
 
     pnts1 = np.array([[54.0, 0.0], [55.0, 1.0], [54.2, -3.0]])
