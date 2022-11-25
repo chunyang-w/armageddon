@@ -147,6 +147,7 @@ class Planet():
         # Enter your code here to solve the differential equations
         if not radians:
             angle = angle/180 * np.pi
+        self.potential_type = "A"
         self.strength = strength
         self.density = density
         self.burstpoint = -1
@@ -176,13 +177,24 @@ class Planet():
             all_angle = [i/np.pi * 180 for i in self.angle]
         else:
             all_angle = self.angle
-        return pd.DataFrame({'velocity': self.velocity,
-                             'mass': self.mass,
-                             'angle': all_angle,
-                             'altitude': self.altitude,
-                             'distance': self.distance,
-                             'radius': self.radius,
-                             'time': self.alltimestep})
+        result = pd.DataFrame({'velocity': self.velocity,
+                               'mass': self.mass,
+                               'angle': all_angle,
+                               'altitude': self.altitude,
+                               'distance': self.distance,
+                               'radius': self.radius,
+                               'time': self.alltimestep})
+        n = len(result)
+        print(result)
+        if self.stopping(
+                result.loc[n-1, "velocity"],
+                result.loc[n-1, "mass"],
+                result.loc[n-1, "altitude"],
+                result.loc[n-1, 'radius']):
+            if result.loc[n-1, "altitude"] <= 0:
+                self.potential_type = "C"
+            result = result.iloc[:-1, :]
+        return result
 
     def calculate_energy(self, result):
         """
@@ -207,7 +219,8 @@ class Planet():
         mass = result["mass"]
         velocity = result["velocity"]
         altitude = np.array(result["altitude"])
-        dedz = np.array(0.5 * mass * velocity/(4.184*10**9) * velocity)
+        dedz = np.array(0.5 * mass / (10**5) * velocity /
+                        (10**4) * velocity / 4.184)
         temp = (dedz[1:] - dedz[:-1]) / (altitude[:-1] - altitude[1:])
         temp = temp
         temp = np.insert(temp, 0, 0)
@@ -218,7 +231,6 @@ class Planet():
     def analyse_outcome(self, result):
         """
         Inspect a pre-found solution to calculate the impact and airburst stats
-
         Parameters
         ----------
         result : DataFrame
@@ -242,7 +254,7 @@ class Planet():
         burstenergy = (0.5 * result["mass"][burstidx]
                        * result["velocity"][burstidx]**2 / (4.184*10**12))
         outcome = "Airburst"
-        if burstidx == len(result) - 1:
+        if burstidx == len(result) - 1 and self.potential_type == "C":
             outcome = "Cratering"
             burstenergy = max(burstenergy, initial_energy - burstenergy)
             burst_altitude = 0
