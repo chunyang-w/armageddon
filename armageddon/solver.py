@@ -134,7 +134,7 @@ class Planet():
 
         backend : str, optional
             Which solving method to use. Default='FE'
-        
+
         hard : bool, optional
             if True, the solver will use the passed in stepsize.
 
