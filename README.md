@@ -14,7 +14,7 @@ For further information on the project specfication, see refer to the notebooks:
 
 See [pdf documentation](https://github.com/ese-msc-2022/acs-armageddon-Dimorphos/blob/main/docs/armageddon.pdf).
 
-See the [solver_notebook.ipynb](https://github.com/ese-msc-2022/acs-armageddon-Dimorphos/blob/main/examples/solver_notebook.ipynb) notebook file for usage demonstrations.
+See the [user_manual.ipynb](https://github.com/ese-msc-2022/acs-armageddon-Dimorphos/blob/main/examples/user_manual.ipynb) notebook file for usage demonstrations.
 
 ## Installation
 
