@@ -1,10 +1,9 @@
 import tkinter as tk
 from armageddon import Planet, damage_zones
 import os
-import time
-from selenium import webdriver
 import folium
 import webbrowser
+
 
 def plot_circle(lat, lon, radius, map=None, ):
     if not map:
