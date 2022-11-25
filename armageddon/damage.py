@@ -73,20 +73,21 @@ def damage_zones(outcome, lat, lon, bearing, pressures):
     blon = float(np.rad2deg(blon))
     blat = float(np.rad2deg(blat))
 
-    # discriminant = np.sqrt((3.24e14 + (1.256e12 * pressures)))
-    # pre_sol = (((((-1.8e7 + discriminant) / 6.28e11)**(-2/1.3)) *
-    #             (Ek**(2/3))) - (zb**2))
-    # initial = np.sqrt(pre_sol)
-    initial = 10000
+    discriminant = np.sqrt((3.24e14 + (1.256e12 * pressures)))
+    pre_sol = (((((-1.8e7 + discriminant) / 6.28e11)**(-2/1.3)) *
+                (Ek**(2/3))) - (zb**2))
+    initial = np.sqrt(pre_sol)
+    # initial = 10000
     damrad = np.zeros(len(pressures))
 
-    def f(r, p):
-        return 3.14e11 * r**(-1.3) + 1.8e7 * r**(-0.565) - p
+    # def f(r, p):
+    #     return 3.14e11 * r**(-1.3) + 1.8e7 * r**(-0.565) - p
     for index in range(len(pressures)):
         p = pressures[index]
-        # f = lambda r: 3.14e11*(((r**2 + zb**2) / (Ek**(2/3)))**(-1.3))\
-        #     + 1.8e7*(((r**2 + zb**2) / (Ek**(2/3)))**(-0.565)) - p # noqa
-        damrad[index] = (fsolve(f, initial, p) * Ek**(2/3) - zb**2) ** 0.5
+        f = lambda r: 3.14e11*(((r**2 + zb**2) / (Ek**(2/3)))**(-1.3))\
+            + 1.8e7*(((r**2 + zb**2) / (Ek**(2/3)))**(-0.565)) - p # noqa
+        # damrad[index] = (fsolve(f, initial, p) * Ek**(2/3) - zb**2) ** 0.5
+        damrad[index] = fsolve(f, initial[index])
 
     return blat, blon, np.abs(damrad).tolist()
 
