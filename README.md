@@ -74,6 +74,14 @@ To run the pytest test suite, from the base directory run
 pytest tests/
 ```
 
+## GUI tool
+
+Use command below to utilize GUI to help you visualize how a specific asteroids would influence the earth.
+
+```
+python gui/interface.py
+```
+
 ## Copyright and License
 
 Licensed under the MIT license.
