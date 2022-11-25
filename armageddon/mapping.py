@@ -1,5 +1,4 @@
 import folium
-# import numpy as np
 
 
 def plot_circle(lat, lon, radius, map=None, **kwargs):

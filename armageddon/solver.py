@@ -191,7 +191,6 @@ class Planet():
                 result.loc[n-1, 'radius']):
             if result.loc[n-1, "altitude"] <= 0:
                 pass
-            # result = result.iloc[:-1, :]
         return result
 
     def calculate_energy(self, result):
@@ -213,7 +212,6 @@ class Planet():
 
         # Replace these lines with your code to add the dedz column to
         # the result DataFrame
-        # result = result.copy()
         mass = result["mass"]
         velocity = result["velocity"]
         altitude = np.array(result["altitude"])
@@ -347,55 +345,15 @@ class Planet():
                                       velocity,
                                       4/3 * np.pi * radius**3 * self.density,
                                       0])
-        # self.solver_velocity = [velocity]
-        # self.solver_mass = [4/3 * np.pi * radius**3 * self.density]
-        # self.solver_angle = [angle]
-        # self.solver_altitude = [init_altitude]
-        # self.solver_distance = [0]
-        # self.solver_radius = [radius]
-        # self.solver_alltimestep = [0]
         self.alltimestep = [0]
         timestep = dt
         iter_num = 0
         acumulated_step = 0
         while True:
             cpara = self.RK4_helper(timestep)
-            # ctheta, cr, cz, cv, cm, cx = self.RK4_helper(timestep)
-            # old_velocity = self.solver_velocity[-1]
-            # old_mass = self.solver_mass[-1]
-            # old_altitude = self.solver_altitude[-1]
-            # old_angle = self.solver_angle[-1]
-            # old_distance = self.solver_distance[-1]
-            # old_radius = self.solver_radius[-1]
-            # old_velocity = self.solver_param[3]
-            # old_mass = self.solver_param[4]
-            # old_altitude = self.solver_param[2]
-            # old_angle = self.solver_param[0]
-            # old_distance = self.solver_param[5]
-            # old_radius = self.solver_param[1]
-            # newv = cv + old_velocity
-            # newm = cm + old_mass
-            # newal = cz + old_altitude
-            # newangle = ctheta + old_angle
-            # newdistance = cx + old_distance
-            # newradius = cr + old_radius
-            # self.solver_velocity.append(newv)
-            # self.solver_mass.append(newm)
-            # self.solver_altitude.append(newal)
-            # self.solver_angle.append(newangle)
-            # self.solver_distance.append(newdistance)
-            # self.solver_radius.append(newradius)
-            # self.solver_alltimestep.append(
-            #     timestep + self.solver_alltimestep[-1])
             flag = np.isclose(acumulated_step + timestep, actualdt)
             if acumulated_step + timestep >= actualdt or flag:
                 rate = (actualdt - acumulated_step)/timestep
-                # output_v = rate*cv + old_velocity
-                # output_m = rate*cm + old_mass
-                # output_al = rate*cz + old_altitude
-                # output_angle = rate*ctheta + old_angle
-                # output_dis = rate*cx + old_distance
-                # output_rad = rate*cr + old_radius
                 output_para = rate * cpara + self.solver_param
                 self.angle.append(output_para[0])
                 self.radius.append(output_para[1])
@@ -431,12 +389,6 @@ class Planet():
             'angle', 'radius', 'altitude',
             'velocity', 'mass', 'distance'
         """
-        # variables = np.array([self.solver_angle[-1],
-        #                       self.solver_radius[-1],
-        #                       self.solver_altitude[-1],
-        #                       self.solver_velocity[-1],
-        #                       self.solver_mass[-1],
-        #                       self.solver_distance[-1]])
         variables = self.solver_param
         k1 = self.calculator_rk4(variables)
         k2 = self.calculator_rk4(variables + 0.5 * timestep * k1)
