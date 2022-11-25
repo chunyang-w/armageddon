@@ -1,5 +1,5 @@
 import numpy as np
-from pytest import fixture, mark
+from pytest import fixture
 
 
 @fixture(scope='module')
@@ -50,7 +50,6 @@ def test_get_population(loc):
     if len(result3) > 0:
         for element in result3:
             assert type(element) is list
-
 
     assert np.allclose(result1, output1)
     assert np.allclose(result2, output2)

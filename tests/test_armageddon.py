@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import os
 
-from pytest import fixture, mark
+from pytest import fixture
 
 
 # Use pytest fixtures to generate objects we know we'll reuse.
